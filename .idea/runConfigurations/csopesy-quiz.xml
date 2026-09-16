@@ -1,0 +1,3 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="csopesy-quiz" type="CustomBuildApplication" factoryName="Application" REDIRECT_INPUT="false" ELEVATE="false" USE_EXTERNAL_CONSOLE="false" EMULATE_TERMINAL="true" PASS_PARENT_ENVS_2="true" EXECUTABLE="file://$PROJECT_DIR$/frozen/csopesy.exe" WORKING_DIR="file://$PROJECT_DIR$" PROGRAM_PARAMS="--config=config/csopesy.ini" />
+</component>
