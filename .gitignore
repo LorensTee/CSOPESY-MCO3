@@ -1,69 +1,57 @@
-# Prerequisites
-*.d
-
-# Compiled Object files
-*.slo
-*.lo
-*.o
-*.obj
-
-# Precompiled Headers
-*.gch
-*.pch
-
-# Linker files
-*.ilk
-
-# Debugger Files
-*.pdb
-
-# Compiled Dynamic libraries
-*.so
-*.dylib
-*.dll
-*.so.*
-
-
-# Fortran module files
-*.mod
-*.smod
-
-# Compiled Static libraries
-*.lai
-*.la
-*.a
-*.lib
-
-# Executables
-*.exe
-*.out
-*.app
-
-# Build directories
+# --- Build output — generated, never source ---------------------------------------------------
 build/
-Build/
 build-*/
+Build/
+frozen/
 
-# CMake generated files
+# --- CMake / CTest / CLion generated ----------------------------------------------------------
+CMakeUserPresets.json
 CMakeFiles/
 CMakeCache.txt
 cmake_install.cmake
-Makefile
 install_manifest.txt
 compile_commands.json
+Testing/
+.cache/
 
-# Temporary files
+# --- Compiler, linker and debugger artifacts --------------------------------------------------
+*.o
+*.obj
+*.a
+*.lib
+*.so
+*.so.*
+*.dylib
+*.dll
+*.exe
+*.out
+*.app
+*.d
+*.dwo
+*.pdb
+*.ilk
+*.gch
+*.pch
+*.mod
+*.smod
+
+# --- CLion: the IDE state is local, the run configurations are COMMITTED (§T0.5) --------------
+# .idea/runConfigurations/{csopesy-dev,csopesy-quiz}.xml ARE the graded run configuration and are
+# part of the deliverable, so they must stay tracked.
+.idea/*
+!.idea/runConfigurations/
+
+# --- Local scratch ----------------------------------------------------------------------------
 *.tmp
 *.log
 *.bak
 *.swp
 
-# vcpkg
-vcpkg_installed/
+# --- Deliberately NOT versioned: the design conversation in docs/replies/ ---------------------
+# User-authored. Delete this line to version those notes; nothing in docs/ else is ignored.
+/docs/replies/
 
-# debug information files
-*.dwo
-
-# test output & cache
-Testing/
-.cache/
+# --- NOT versioned: the course handout PDF ----------------------------------------------------
+# Third-party course material, and this repository is public — not ours to redistribute. §3.2's
+# docs/ tree does not list it. Keep a local copy and share it with teammates directly.
+/docs/MO3 - Marquee_Operator.pdf
