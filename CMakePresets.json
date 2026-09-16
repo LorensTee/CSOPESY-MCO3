@@ -1,0 +1,11 @@
+{
+  "version": 3,
+  "configurePresets": [
+    { "name": "debug",      "generator": "Ninja", "binaryDir": "${sourceDir}/build/debug",
+      "cacheVariables": { "CMAKE_BUILD_TYPE": "Debug" } },
+    { "name": "release",    "generator": "Ninja", "binaryDir": "${sourceDir}/build/release",
+      "cacheVariables": { "CMAKE_BUILD_TYPE": "Release" } },
+    { "name": "windows-vs", "generator": "Visual Studio 17 2022", "architecture": "x64",
+      "binaryDir": "${sourceDir}/build/vs" }
+  ]
+}
