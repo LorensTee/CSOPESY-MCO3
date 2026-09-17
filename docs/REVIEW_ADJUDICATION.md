@@ -14,6 +14,18 @@ This file covers **seven** review rounds:
 
 ---
 
+### Standing reference — `AGENTS.md` (provenance note, added 2026-09-17)
+
+Several rounds below cite *this repo's `AGENTS.md`* as the authority mandating the Feature-Sliced layers
+(point 21, §10.2). The instruction itself was real from round 1 and the substance is unchanged, but the
+**file was not committed until 2026-09-17**: `AGENTS.md` is now in the repository root, and its §3 is the
+layer rule restated as plan §3.1 and enforced by `scripts/check_layers.sh`. Until then the citations pointed
+at a file that existed only in the working conversation, which round 2's reviewer (`gpt-v2.md` §"Keep the FSD
+layer structure") then repeated back. The decisions and their reasoning are unaffected; the citation is now
+verifiable in-tree.
+
+---
+
 ## Round 1 — `gpt-v1.md` against `IMPLEMENTATION_PLAN.md` v1
 
 > Written 2026-09-16 by the implementer. Every point below was checked against **primary evidence**, not
@@ -26,7 +38,8 @@ defect and four real contradictions, and its simplification pressure is correct 
 But it is not all correct: **2 points are wrong / overstated**, several are *amended* rather than accepted,
 and it **missed 7 defects of the same severity as the ones it found** (3 of them in the exact test file it
 criticised). It also proposes a repository restructure that would violate this project's own coding
-instructions. Result: **~75 % accepted, ~15 % amended, ~10 % rejected** → see §3.
+instructions (`AGENTS.md` §3 — see the provenance note at the top of this file). Result: **~75 % accepted,
+~15 % amended, ~10 % rejected** → see §3.
 
 ---
 
@@ -94,7 +107,7 @@ Legend: **A** = accepted and implemented in v2 · **A′** = accepted with amend
 | 18 | Hash printing / committed binary is unnecessary | **A′** | Binary **never committed** (submission package / release asset). The SHA-256 stays as a one-line note in `docs/frozen-artifact.md` — it is discipline, not infrastructure; nothing prints it at launch |
 | 19 | `lukka/get-cmake` unnecessary | **A** | Removed |
 | 20 | CLion wording is stale | **A** | Wording softened per JetBrains' current doc (MSVC LLDB **is** supported on Windows); the verify-don't-assume gate is kept — it is what protects the graded video |
-| 21 | Don't turn FSD into "architecture theatre" | **A′** | Only the layer/import invariants are used — which is exactly what v1 already did. But GPT's *proposed flattening* (`core/`, `commands/`, `marquee/`, `terminal/`) is **rejected**: this repo's `AGENTS.md` mandates those FSD layers, and the file count is identical. "Don't over-engineer" ≠ "break the project's stated standard" |
+| 21 | Don't turn FSD into "architecture theatre" | **A′** | Only the layer/import invariants are used — which is exactly what v1 already did. But GPT's *proposed flattening* (`core/`, `commands/`, `marquee/`, `terminal/`) is **rejected**: `AGENTS.md` §3 mandates those FSD layers, and the file count is identical. "Don't over-engineer" ≠ "break the project's stated standard" |
 | 22 | pty replay harness is too ambitious → optional | **A** | Moved to P2, non-gating |
 | 23 | A6/A8/A10 are misleading tests | **A** | A6 drops "twice"; A10 drops the "100 % CPU" criterion (becomes an observation); A8 stays as a labelled stress case |
 | 24 | The central architecture is worth keeping | **A** | Kept: Terminal abstraction → cooperative scheduler → PCB → renderer → single composed frame; config → CLI → runtime |
@@ -110,7 +123,7 @@ Legend: **A** = accepted and implemented in v2 · **A′** = accepted with amend
 
 #### Where this document disagrees with the review outright
 
-1. **Repository restructure (point 21).** Flattening the layers would violate `AGENTS.md`. Rejected.
+1. **Repository restructure (point 21).** Flattening the layers would violate `AGENTS.md` §3. Rejected.
 2. **`marquee_row` (point 15).** Kept, config-only, because the handout's own screenshots contradict each
    other. Rejected.
 3. **Killing the pty replay harness *and* the measurement log *and* `--diag` *and* every optional knob.**
@@ -578,7 +591,7 @@ reasons, 0 new defects** — its one defect (the `--measure` coalescing) is v5's
 
 Everything in its 🔴 column except `wakeTick_`, the `--measure` metric and the concurrency matrix was
 already decided in rounds 1–3: `--diag` exists solely for the T0.5 verification gate, the CI matrix is the
-DoD-3 carrier, macOS is a compile-only target, and the FSD layers are mandated by this repo's `AGENTS.md` — the
+DoD-3 carrier, macOS is a compile-only target, and the FSD layers are mandated by `AGENTS.md` §3 — the
 same reason round 1 rejected GPT's flattening proposal. v6 arrived at the same conclusion itself
 ("keep existing structure if already required by your project"). No action.
 

@@ -323,10 +323,11 @@ The `Terminal` contract (§3.3) is unaffected: CLion's console is just another `
 
 ## 3. Frozen contracts (Phase 0 — write these before any feature work)
 
-### 3.1 Layer rules (FSD-adapted, per `AGENTS.md`)
+### 3.1 Layer rules (FSD-adapted, per `AGENTS.md` §3)
 
-The project instructions require Feature-Sliced structure. FSD targets frontend frameworks, so only its
-invariants are adopted — **layer order and downward-only imports**:
+`AGENTS.md` (repository root) is the project's coding-instruction file, and it requires the Feature-Sliced
+structure restated here. FSD targets frontend frameworks, so only its invariants are adopted — **layer order
+and downward-only imports**:
 
 ```text
 app/       composition root: main.cpp, ConsoleApp, Scheduler. Imports everything below.
@@ -362,6 +363,7 @@ silently violated for three review rounds.
 
 ```text
 csopesy-marquee/
+├─ AGENTS.md                       # project coding instructions; §3 is the FSD layer rule below
 ├─ CMakeLists.txt                  # if(WIN32) picks terminal_win32.cpp
 ├─ CMakePresets.json               # debug / release / windows-vs  (read-only in CLion)
 ├─ CMakeUserPresets.json           # LOCAL overrides only; gitignored
@@ -3003,7 +3005,7 @@ input-thread-only. No new names.
 
 - **Feature-Sliced Design** targets frontend projects; this is a C++ terminal program. Only its invariants
   (layer order, downward-only imports, explicit contracts) are applied (§3.1). No `pages/`/`widgets/` layers.
-  The review's proposed flattening was rejected — `AGENTS.md` mandates these layers and the file count is
+  The review's proposed flattening was rejected — `AGENTS.md` §3 mandates these layers and the file count is
   identical either way.
 - **`npx @tanstack/intent list`** was run from the workspace root: no intent-enabled packages found, so no
   local skill overlays this plan.
