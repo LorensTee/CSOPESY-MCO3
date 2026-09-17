@@ -1286,12 +1286,17 @@ than carrying debt forward. Only D6 has float.
 
 ### Phase 0 — contracts and a green pipeline (Byron leads; Lorens/Nathan/Kim review)
 
+**Status (2026-09-17):** T0.1–T0.4 **complete** (evidence under each commit step below); T0.5 **partial**
+(Step 3 committed, Steps 1–2 and 4–7 open — see its status line); T0.5b not needed so far. Local
+re-verification for this date: `bash scripts/check_layers.sh` → `OK (26 files scanned)`, `ctest --preset debug`
+→ 1/1 passed, and `git hash-object include/csopesy/*.hpp` → 13/13 match `CONTRACTS.md`.
+
 #### T0.1 — Repository skeleton, layer rules, assertion harness
 
 **Files:** `CMakeLists.txt`, `.gitignore`, `scripts/check_layers.sh`, `tests/support/{check.hpp,check.cpp}`,
 all `include/csopesy/*.hpp` from §3 as declarations only, `src/**` stub `.cpp` with `// TODO(task)` bodies.
 
-- [ ] **Step 1 — the harness and its own test**
+- [x] **Step 1 — the harness and its own test**
 
 ```cpp
 // tests/support/check.hpp
@@ -1330,14 +1335,15 @@ int main() {
 Note on `CHECK_STR`: expected literals must reproduce trailing padding exactly, because every glyph cell is
 fixed-width. The test file includes `<algorithm>`, `<deque>`, `<string>` here so no individual test has to.
 
-- [ ] **Step 2 — the layer guard** (§3.1): `scripts/check_layers.sh` fails the build if a lower layer includes a
+- [x] **Step 2 — the layer guard** (§3.1): `scripts/check_layers.sh` fails the build if a lower layer includes a
   higher one — no `#include "platform/..."` outside `platform/`, no `features/` header inside `entities/`, and
   no `features/` header inside a *different* `features/` slice. It is a ~15-line `grep`, and it exists because
   the `entities/scheduler.cpp` violation survived three review rounds of prose (§3.1, §10.8). Wiring it into
   CI is what makes §3.1's "enforced" true rather than aspirational.
-- [ ] **Step 3 — run it, expect success with zero tests**
+- [x] **Step 3 — run it, expect success with zero tests**
 `cmake --preset debug && cmake --build build/debug && ./build/debug/csopesy_tests` → `OK  0 tests`
-- [ ] **Step 4 — commit** `chore: repo skeleton, frozen contracts, zero-dep test harness, layer guard`
+- [x] **Step 4 — commit** `chore: repo skeleton, frozen contracts, zero-dep test harness, layer guard`
+  **Evidence (2026-09-17):** commit `fd0bb63`; `check_layers: OK (26 files scanned)`.
 
 #### T0.2 — CMake with platform source selection + presets
 
@@ -1421,7 +1427,9 @@ set_tests_properties(unit PROPERTIES TIMEOUT 60)
 
 Note: `FakeTerminal` is **not** in `CORE_SOURCES` — it is a header-only test double in `tests/support/`.
 
-- [ ] **Step 1 — configure + build + test on every OS you have.**
+- [x] **Step 1 — configure + build + test on every OS you have.** (Linux verified 2026-09-17 via
+  `cmake --preset debug` → `--build` → `ctest --preset debug`, 1/1 passed; the Windows and macOS builds are the
+  T0.3 matrix's job.)
 Linux/macOS: `cmake --preset debug && cmake --build build/debug && ctest --test-dir build/debug --output-on-failure`
 Windows: `cmake --preset windows-vs && cmake --build build/vs --config Debug && ctest --test-dir build/vs -C Debug --output-on-failure`
 Expected: build succeeds; `100% tests passed, 0 tests failed out of 1` (the `unit` harness only — the
@@ -1433,7 +1441,9 @@ may not be holding — that is the exact failure mode v2.3 fixes above, and this
 Also confirm the **threading link** is real: if `find_package(Threads)`/`Threads::Threads` were dropped, the
 POSIX build fails at link time with `undefined reference to 'pthread_create'`, never at configure time, and
 `std::thread` is in `CORE_SOURCES` from T1.3 onwards.
-- [ ] **Step 2 — commit** `build: cmake with per-platform terminal source + presets`
+- [x] **Step 2 — commit** `build: cmake with per-platform terminal source + presets`
+  **Evidence (2026-09-17):** commit `38818ad`; compile line `-g -std=gnu++17 -Wall -Wextra`; `Found Threads:
+  TRUE`.
 
 #### T0.3 — CI matrix on all three OS families
 
@@ -1460,9 +1470,11 @@ jobs:
         run: ctest --test-dir build -C Debug --output-on-failure   # `unit` now; `smoke` joins it at T2.5
 ```
 
-- [ ] **Step 1 — push a branch and confirm all three jobs are green** — the only proof that the Win32/POSIX
+- [x] **Step 1 — push a branch and confirm all three jobs are green** — the only proof that the Win32/POSIX
   split still compiles on platforms nobody here can hold.
-- [ ] **Step 2 — commit** `ci: build+ctest on ubuntu, windows, macos`
+- [x] **Step 2 — commit** `ci: build+ctest on ubuntu, windows, macos`
+  **Evidence (2026-09-17):** commit `7f541c2`; 3/3 jobs success on runs `35118223659` (`t0-foundation`),
+  `35118445611`, `35119216051`, `35120070872` (`main`).
 
 #### T0.4 — Freeze marker
 
@@ -1471,9 +1483,21 @@ protocol. The headers that actually changed are `scheduler.hpp` (the two-thread 
 critical-section rules and the v2.6 `quit_`/`TickResult` narrowing, §3.8), `parameters.hpp` (`measurePath`,
 §3.5) and `interpreter.hpp` (the `quit_` ownership note, §3.11), so those are re-frozen first.
 
-- [ ] **Step 1** write it. **Step 2** commit `docs: freeze contracts v2.6`
+- [x] **Step 1** write it. **Step 2** commit `docs: freeze contracts v2.6`
+  **Evidence (2026-09-17):** commit `3d5d0e5`; all 13 blob hashes match (`git hash-object
+  include/csopesy/*.hpp`); a deliberate mutation of `keys.hpp` was caught by the check, then reverted.
 
 #### T0.5 — CLion toolchains, presets, and the Run/Debug config (all four; Byron owns the record)
+
+**Status (2026-09-17): PARTIAL.** Step 3 is complete — `CMakePresets.json` and both run configurations are
+committed (`78dc8a3`). Steps 1–2 and 4–6 are owner-side CLion work with no in-repo record yet
+(`docs/clion-toolchain.md` and `docs/clion-run-config.md` still hold unfilled cells), and Step 5's checks
+(a)–(d) are **impossible before T2.5**: every `src/*.cpp` is still a `TODO` stub, so there is nothing to
+render, animate, `--diag`, or resize. Step 7's commit may carry the word *verified* only after that gate runs
+— which is why `78dc8a3`'s message says "Step 5 gate pending". Two decisions remain open and are recorded in
+`docs/clion-run-config.md`: whether `csopesy-dev` keeps its pre-launch `Build` (this task's Step 3 says *both*
+configurations, while §2.4/§10 tie no-`Build` to the graded configuration only), and the committed
+`EMULATE_TERMINAL` value for W3's Windows build.
 
 **Files:** `CMakePresets.json` (extend), `.idea/runConfigurations/csopesy-dev.xml`,
 `.idea/runConfigurations/csopesy-quiz.xml`, `.gitignore` (add `CMakeUserPresets.json`, `build/`, `frozen/`,
@@ -1489,7 +1513,8 @@ critical-section rules and the v2.6 `quit_`/`TickResult` narrowing, §3.8), `par
 - [ ] **Step 2 — pin the toolchain per member and record it**: Lorens: system GCC/clang + Ninja · Byron:
   GCC/Ninja on Linux, **MSVC** on Windows · Nathan: **MSVC** (documented pairing for *Run in external console*)
   · Kim: AppleClang + Ninja, MSVC on Windows. Write the compiler versions into `docs/clion-toolchain.md`.
-- [ ] **Step 3 — commit both run configurations**:
+- [x] **Step 3 — commit both run configurations** (`78dc8a3`; see the T0.5 status line for the open
+  `Build`-on-`csopesy-dev` question):
   - `csopesy-dev`: CMake Application, target `csopesy`, working directory `$ProjectFileDir$`, program
     arguments `--config=config/csopesy.ini`.
   - `csopesy-quiz`: **Custom Build Application**, `Executable` =
@@ -3133,8 +3158,10 @@ compiled on any machine.** Races, use-after-free, missed wakeups and deadlock fr
 argued from the §3.8 ownership table and exercised on paper*, not observations, until T0.1's green `ctest` and
 T1.3's Step 1/1b/1c runs exist. v2.3's rule stands for everything future: this file changes on *evidence* — a
 green `ctest` on the owner's hardware, a compile on all three CI images, a terminal transcript, or a failing
-acceptance case. The next action is still T0.1, and T0.1→T0.2 must precede T1.3 because the thread-aware
-`FakeTerminal` and `Threads::Threads` are prerequisites for it.
+acceptance case. **Status (2026-09-17): T0.1–T0.4 have since landed** — see the Phase 0 status block for the
+evidence — so the next action is **Phase 1** (parallel workstreams per §5.0 D1). The ordering constraint is
+unchanged and still binding: T1.1 → T1.2 → T1.3, because the thread-aware `FakeTerminal` and `Threads::Threads`
+are T1.3's prerequisites.
 
 ### 10.11 Revision log (v2.4 → v2.5) — the threading reviews (rounds 5–6)
 
@@ -3267,6 +3294,8 @@ concern is not either adjudicated with evidence or listed in §10.11/§10.12 as 
 own rule (v2.3, §10.9) is now the only rule that applies: **this file changes on evidence** — a green `ctest` on
 the owner's hardware, a compile on all three CI images, a terminal transcript, or a failing acceptance case.
 
-The next action is **T0.1**, then T0.2, then T1.3 exactly as written. The threaded scheduler's safety is not
+**Status (2026-09-17): T0.1, T0.2 and T0.4 are complete and T0.5 is partial** (evidence in the Phase 0 status
+block), so the next action is **Phase 1** — for W1 Lorens, T1.1 → T1.2 → T1.3 exactly as written. T0.1's green
+`ctest` now exists; T1.3's runs do not. The threaded scheduler's safety is not
 established by this document and was never claimed to be; it will be established, or falsified, by
 `cmake --preset debug`, `ctest`, and — where the toolchain has them — TSan and ASan.

@@ -5,8 +5,10 @@ command prompt), a 4-member group submission due **2026-09-23**. `src/main.cpp` 
 `README.txt` is required by the handout. Architecture is **two threads**: an input/command thread (`main`)
 and a marquee worker, one `std::mutex`, one `std::condition_variable`.
 
-**Current state: Phase 0.** `include/csopesy/*.hpp` are frozen contracts; `src/**` and `tests/**` are stubs
-and partial implementations. Do not assume a task is done because the file exists — check
+**Current state (2026-09-17): Phase 0 is nearly done.** T0.1–T0.4 are complete and evidenced; T0.5 is
+partial — `CMakePresets.json` and both CLion run configurations are committed, but the CLion-side gate and its
+records are not (see the Phase 0 status block in the plan). `include/csopesy/*.hpp` are frozen contracts;
+`src/**` is still `TODO` stubs. Do not assume a task is done because the file exists — check
 `docs/IMPLEMENTATION_PLAN_v2.md` §5 for the phase it belongs to.
 
 ## 1. Sources of truth (read before you write)
