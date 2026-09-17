@@ -77,14 +77,19 @@ contract change; re-running a tool is not an exemption.
 ## 5. Threading invariants (do not break)
 
 - The **marquee worker is the only terminal writer.** The input thread never writes a frame.
-- One mutex, one condition variable. No syscall inside the critical section: `Terminal::size()` is read
-  *before* taking the lock; `--measure` appends happen *after* releasing it.
+- Production scheduler coordination uses exactly **one `std::mutex` and one `std::condition_variable`**.
+  Do not add another production synchronization layer. Test doubles (`FakeTerminal`) deliberately carry their
+  own mutex/condition variables so the threaded tests can be deterministic — that is expected and is not the
+  production coordination layer. No syscall inside the critical section: `Terminal::size()` is read *before*
+  taking the lock; `--measure` appends happen *after* releasing it.
 - `Terminal::nowMs()` is the **only** clock source, injected into `Scheduler`. Do not call `std::chrono`
   directly in scheduler logic.
 - `Interpreter::quit_` is read and written by the **input thread only**; the worker stops via `stop_` +
   condition variable.
 - **No `sleep_for` / `sleep_until` in concurrency tests.** They must be deterministic (barrier-synchronized,
-  driven input); a real-time sleep is a flake waiting to happen, and CI greps for it.
+  driven input); a real-time sleep is a flake waiting to happen. T1.3 Step 4 runs
+  `grep -n 'sleep_' tests/unit/test_scheduler.cpp` and expects no output — that grep is a *task step*, not a
+  CI job (CI runs the layer guard and `ctest`).
 - A green deterministic suite does **not** prove two activities overlapped in real time. Concurrency claims
   need the real-overlap test plus the A8 transcript (plan §6.1 item 7, §6.3).
 
