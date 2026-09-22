@@ -12,7 +12,7 @@ the header set went 13 → 11, `CONTRACTS.md`'s marker is **v3.0**, and the guar
 **D18**; everything below describes the tree as it now stands, and the next work is **Phase 1** (step 5 of
 `PLAN_V3_PROGRESS.md` §9), not any more migration.
 
-**Version:** v3.0-draft · **Established:** 2026-09-22 · **Deadline:** Monday **2026-09-28** (revised from
+**Version:** v3.0 · **Established:** 2026-09-22 · **Deadline:** Monday **2026-09-28** (revised from
 2026-09-23 on 2026-09-22 — D17, `PLAN_V3_PROGRESS.md` §6) · **Supersedes:** `docs/IMPLEMENTATION_PLAN_v2.md`
 (v2.6, 2026-09-16 — kept in place, marked superseded, never edited again).
 
@@ -31,8 +31,8 @@ matrix, the zero-dependency harness) deliberately kept.
 
 | Question | Answer |
 | --- | --- |
-| How should this be built? | §5 (task backlog) — arrives in S3. Until then, v2 §5 is the only task list, and it is **wrong** wherever §3.0 below says so. |
-| What is the interface? | §3 (contracts) + `include/csopesy/*.hpp`. Until S2 lands, the headers on disk are **v2.6**, not v3. |
+| How should this be built? | §5 (task backlog). The unchanged task bodies it names still live in v2 §5 (D16); §3.0 below says which v2 text no longer applies. |
+| What is the interface? | §3 (contracts) + `include/csopesy/*.hpp`. The headers on disk are **v3.0** (landed `d6379df`); `CONTRACTS.md`'s hash table is the authority. |
 | Why is it like this? | `docs/REVIEW_ADJUDICATION.md` for decisions up to v2.6; §3.0 and the v3 revision log (§10) for the v3 deltas; `docs/PLAN_V3_PROGRESS.md` §4 for the dated decision list. |
 | What is graded? | §1 (spec decode) and §6 (definition of done, acceptance cases A1–A12). |
 | What may I not "simplify"? | §3.0 table B — the kept list — and `AGENTS.md` §6. |

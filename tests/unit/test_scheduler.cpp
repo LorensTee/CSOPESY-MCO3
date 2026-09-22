@@ -1,17 +1,15 @@
 // tests/unit/test_scheduler.cpp — T1.3: the marquee worker, the preserved pure step, and the render deadline
 // driven by term_.nowMs() (§3.8).
 //
-// Deterministic by construction: every wait in this file is a condition-variable barrier on a FakeTerminal
-// counter, and the clock is the double's atomic field. No real-time sleep primitive appears anywhere — T1.3
-// Step 4 greps this file for one and must print nothing, and §6.1 DoD 2 makes that a hard requirement.
+// Deterministic by construction: every wait is a condition-variable barrier on a FakeTerminal counter, and the
+// clock is the double's atomic field. No real-time sleep primitive appears anywhere — a sleep here would be a
+// flake, not a synchronization.
 //
-// SCOPE. Assertions that need another owner's implementation are deliberately absent, not faked:
-//   * observing Terminal::write() needs Renderer::buildFrame to return a frame (T4.2);
-//   * observing a command's effect needs Interpreter::feed (T2.4).
-// Until those land, this suite pins everything observable through Scheduler-owned state — cycles,
-// hasRendered/lastRenderMs, snapshot(), pollTimeoutMs(), TickResult, stop_ + join — plus the tick barrier
-// (tick() calls Terminal::size() once, as its first action). The deferred assertions are listed in
-// docs/PLAN_V3_PROGRESS.md §6 so they are owed, not forgotten.
+// SCOPE: this suite pins only what the scheduler owns. Terminal::write() is observable only once
+// Renderer::buildFrame returns a real frame (T4.2), and a command's effect only once Interpreter::feed works
+// (T2.4), so those assertions are deliberately absent rather than faked; the list to add when those land is in
+// docs/PLAN_V3_PROGRESS.md §6. Pinned here: cycles, hasRendered/lastRenderMs, snapshot(), pollTimeoutMs(),
+// TickResult, stop_ + join, and the tick barrier (tick() calls Terminal::size() once, as its first action).
 #include <atomic>
 #include <cstddef>
 #include <string>

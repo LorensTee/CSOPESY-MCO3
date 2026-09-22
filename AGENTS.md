@@ -35,7 +35,7 @@ agreed sequence.
 | How should this be built? | `docs/IMPLEMENTATION_PLAN_v3.md` — the authoritative plan (contracts v3.0). `IMPLEMENTATION_PLAN_v2.md` is **frozen history**: v3 §3 quotes its §3.3/§3.8/§3.10/§3.11 normatively and must not be edited |
 | What is the interface? | `CONTRACTS.md` + `include/csopesy/*.hpp` — **frozen** |
 | Why is it like this? | `docs/REVIEW_ADJUDICATION.md` — every accepted/rejected review point, with reasons |
-| What is graded? | plan §1 (spec decode) and §6 (definition of done, acceptance cases A1–A10) |
+| What is graded? | plan §1 (spec decode) and §6 (definition of done, acceptance cases A1–A12) |
 | CLion toolchain / run configs | `docs/clion-toolchain.md`, `docs/clion-run-config.md` |
 
 The course handout PDF and `docs/replies/` are **deliberately untracked** (see `.gitignore`) — do not add them.

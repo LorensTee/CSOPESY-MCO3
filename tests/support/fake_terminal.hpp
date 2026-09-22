@@ -90,8 +90,9 @@ class FakeTerminal : public Terminal {
   }
 
  private:
-  // Lock order: m_ is a LEAF lock. The worker takes mu_ and then m_ (tick -> size -> write) and nothing ever
-  // takes m_ and then mu_, so mu_ -> m_ is a total order with no cycle. The real backends take no lock here.
+  // m_ is a LEAF lock and it is never held together with Scheduler::mu_: size() is called before mu_ is taken
+  // and write()/flush() after it is released, so the two locks never nest and there is no lock order to obey.
+  // The real backends take no lock here at all.
   mutable std::mutex m_;
   mutable std::condition_variable tickCv_, frameCv_;   // size() is const but it is the tick barrier
   std::vector<std::string> writes_;

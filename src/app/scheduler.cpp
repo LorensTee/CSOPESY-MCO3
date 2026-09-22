@@ -34,7 +34,7 @@ void Scheduler::postEvent(const KeyEvent& ev) {
     interp_.feed(ev);
     dirty_ = true;          // "an echo frame is owed" — this is what keeps typing latency off refreshMs
   }
-  cv_.notify_one();         // harmless if the worker is already stepping
+  cv_.notify_all();         // one waiter today; §3.8 and requestStop use notify_all, so match them
 }
 
 void Scheduler::wake() {

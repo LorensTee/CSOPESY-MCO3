@@ -8,7 +8,7 @@ intended — **update both in the same session**.
 **Rule for this file:** update it at the **end of every working session**, before you stop. A session that
 changes nothing still gets a dated line in §7. Never mark a stage done without the artifact it produced.
 
-**Established:** 2026-09-22 · **Last updated:** 2026-09-22 (**T0.6 closed; Phase 1: T1.1, T1.2 and T1.3 landed and CI-green on all three OSes**)
+**Established:** 2026-09-22 · **Last updated:** 2026-09-22 (**T0.6 closed; Phase 1: T1.1, T1.2 and T1.3 landed and CI-green on all three OSes; review-driven cleanup, no behaviour change**) 
 **Deadline: Monday 2026-09-28** (revised from 2026-09-23 — six days, not one). **The §4.5 change-control protocol
 is honored in full: no header change lands ahead of ratification.** Stage sequence in §9.
 
@@ -203,6 +203,33 @@ Recording the reasons here so a future session does not "simplify" them again.
   only copies on disk are inside Flatpak runtimes (`org.gnome.Platform` etc.), which are a different libc and
   must not be mixed in. **No TSan/ASan evidence is claimed for T1.3**, and per the plan nothing was wired into
   CI. The determinism evidence is the 150/150 clean runs plus the design's single-owner rules.
+- **`postEvent`'s wake form was reconciled to `notify_all` — the two sources of truth disagreed about it.** v2
+  §3.8's normative code block writes `cv_.notify_one()` for `postEvent`, while v3 §3.8's delta row says
+  `cv_.notify_all()`. A delta row is *by definition* the changed v3 behaviour, so the delta row wins and the
+  implementation now matches it. The change is behaviourally free (with exactly one waiter, `notify_all` and
+  `notify_one` are indistinguishable) and it makes `postEvent` consistent with `requestStop`. Recorded so a later
+  "cleanup" back to `notify_one` does not silently re-open the mismatch — **`wake()` stays `notify_one`**, because
+  no delta list changes it.
+- **The `FakeTerminal` lock-order comment was factually wrong, and v2 §3.8 is where the wrong claim came from.**
+  It read *"the worker takes `mu_` and then `m_` (tick -> size -> write)"*. It does not: `Terminal::size()` is
+  read **before** `mu_` is taken (§3.8 rule 3) and `write()`/`flush()` happen **after** it is released (rule 2),
+  so the two locks are never held simultaneously and there is no `mu_ -> m_` order to state. This outlives the
+  comment: the identical sentence sits in v2 §3.8's `FakeTerminal` snippet, so anyone copying that snippet
+  inherits a false invariant. The comment now describes what the code does; **no lock rule changed.**
+- **Three stale claims were fixed in the non-frozen docs (the v3 plan and `AGENTS.md`).**
+  `IMPLEMENTATION_PLAN_v3.md` still called itself `v3.0-draft`, and its §0 table still said *"Until S2 lands, the
+  headers on disk are **v2.6**, not v3"* and *"§5 (task backlog) — arrives in S3"* — all three falsified by T0.6
+  (`d6379df`). `AGENTS.md` §1 said the acceptance cases are **A1–A10** while v3 §6.2 has **A1–A12**. Fixed in
+  place, because neither file is frozen. **Deliberately not touched:** v2's own `A1–A10` prose (lines 2949/2981/
+  3048) and its stale 2026-09-23 dates — v2 is frozen text (D11/D16), superseded by banner rather than by edit.
+- **A review's two style claims were checked and did not hold; recorded so nobody "fixes" them later.** The claim
+  that source comments violate `AGENTS.md` §9 by referencing `§3.8` and task ids is wrong — that is established
+  house style here (`tests/unit/test_process.cpp` opens with "T1.2"; `src/platform/terminal_posix.cpp` cites
+  "§3.4, §T1.1"), and §9 forbids *plan history, review history, agent reasoning, D-numbers and rejected designs*,
+  not references to the normative spec. The claim that the comments narrate "the v2 plan" is also wrong:
+  `grep -n v2` finds **no** mention in `scheduler.cpp`, `test_scheduler.cpp` or `fake_terminal.hpp`. What the
+  review got right, and what was fixed: the test header narrated *process* ("T1.3 Step 4 greps this file",
+  "§6.1 DoD 2", "so they are owed, not forgotten") — exactly the plan-process prose §9 forbids.
 
 ## 7. Session log (newest last)
 
@@ -219,6 +246,7 @@ Recording the reasons here so a future session does not "simplify" them again.
 | 2026-09-22 | **S6 / P1 — T1.2** | **T1.2 `MarqueeProcess` PCB** implemented in `src/entities/process.cpp`: `start()` returns `false` when already `Running` and otherwise sets `Running` + clears `hasRendered`; `stop()` returns `false` when already `Stopped` and otherwise sets `Stopped`. New `tests/unit/test_process.cpp` (7 tests: the contract defaults — `pid 1`, `name "marquee"`, `Stopped`, `cycles 0`, `lastRenderMs 0`, `hasRendered false` — both transitions, both no-op `false` returns, `start()` clearing `hasRendered`, and `stop()` *not* clearing it), registered in `CMakeLists.txt`. **TDD evidence: 14 assertions failed against the stub** (`FAILED  14 assertion(s)`, `0% tests passed`), then `OK 7 tests` / `ctest` 100% 1/1 after the implementation; clean rebuild is warning-free under `-Wall -Wextra`. Guard `OK (22 files scanned)`; **11/11 frozen hashes still match `CONTRACTS.md`** — no header touched. The `hasRendered` false → true transition is **deliberately not** in this task: `Scheduler` owns it (§3.8), so it lands with T1.3 (§6). Landed as **`ed18908`** and pushed; **CI [run 35732133066](https://github.com/LorensTee/CSOPESY-MCO3/actions/runs/35732133066) is green on all three OSes** (ubuntu-latest 20 s, macos-latest 18 s, windows-latest 1 m 14 s), so `AGENTS.md` §8 item 2 holds for this task too. | `src/entities/process.cpp`, `tests/unit/test_process.cpp`, `CMakeLists.txt`, `PLAN_V3_PROGRESS.md` |
 | 2026-09-22 | **S6 / P1 — T1.3** | **T1.3 the threaded scheduler** implemented in `src/app/scheduler.cpp` (the only non-test `src` change): `start`/`run` (bounded `cv_.wait_for`, `stop_` the sole exit signal), the input-thread API (`postEvent`/`wake`/`requestStop`/`join`/`joinable`), the preserved pure step `tick(ev)`, `pollTimeoutMs`/`snapshot`, and the three lock rules — `size()` read before `mu_`, the frame assembled under `mu_` and written after it, `tick()` never called holding `mu_`. `buildFrame` + one `write()` + one `flush()` replaces the v2 `FrameBuffer`; `term_.nowMs()` replaces the injected `Clock` (`<chrono>` is only the wait duration type); no `--measure`/`pendingEventMs_`/`eventOwed_` reappeared. New `tests/support/fake_terminal.hpp` (thread-aware double: `size()`-count tick barrier, cv waits, `outCopy`/`frameCount`/`writesCopy`/`writersCopy`/`push`) and `tests/unit/test_scheduler.cpp` — 16 tests. **TDD evidence: 53 assertions failed against the stub** (`FAILED  53 assertion(s)`), then **`OK 23 tests`** / `ctest` 100% 1/1. `grep -n 'sleep_' tests/unit/test_scheduler.cpp` prints **nothing**; guard `OK (22 files scanned)`; **11/11 frozen hashes still match `CONTRACTS.md`**; clean rebuild warning-free under `-Wall -Wextra`. **A latent flake in the plan's own barrier pattern was found and fixed** (1 failure in 40 runs → **150/150 clean**) — see §6. `docs/threading-model.md` written (T1.3 Step 6, the PPT's source of truth). **The test suite is deliberately scheduler-only**; the assertions owed to T4.2/T2.4 are enumerated in §6. Sanitizers unavailable on this machine (§6). Landed as **`95b0b61`** and pushed; **CI [run 35735238660](https://github.com/LorensTee/CSOPESY-MCO3/actions/runs/35735238660) green on all three OSes** (ubuntu-latest 53 s, macos-latest 49 s, windows-latest 47 s — `100% tests passed` on each, so the threaded suite really executed on Windows and macOS, not just compiled). | `src/app/scheduler.cpp`, `tests/support/fake_terminal.hpp`, `tests/unit/test_scheduler.cpp`, `docs/threading-model.md`, `PLAN_V3_PROGRESS.md` |
 | 2026-09-22 | **S6 / P1 — T1.1 CI** | Pushed the cleanup pass (`1b600c7`) and T1.1 (`212db5b`). **CI [run 35728749335](https://github.com/LorensTee/CSOPESY-MCO3/actions/runs/35728749335) failed on `macos-latest` only** — `::sigemptyset(...)` does not compile there because macOS defines `sigemptyset` as a macro (`(*(set) = 0, 0)`), while ubuntu and windows passed. That is exactly the platform split the 3-OS matrix exists to catch (D9), and it is the first defect T1.1's Linux-only hand check could not have found. Fixed as **`242825b`** (unqualified `sigemptyset`, with a comment so a future cleanup does not re-add `::`); re-run [35728920428](https://github.com/LorensTee/CSOPESY-MCO3/actions/runs/35728920428) is **green on all three OSes** (ubuntu, windows, macos). | `src/platform/terminal_posix.cpp` |
+| 2026-09-22 | **S6 / P1 — cleanup** | **Review-driven cleanup; the only executable change is one wake form.** `postEvent` now uses `cv_.notify_all()` to match v3 §3.8's delta row (v2 §3.8's code block says `notify_one`; the delta row is the changed behaviour, and with one waiter the two are indistinguishable — §6). Fixed the factually wrong `FakeTerminal` lock-order comment and trimmed plan-process narration out of `test_scheduler.cpp`'s header per `AGENTS.md` §9. Fixed three stale doc claims: the v3 plan's `v3.0-draft` marker, its §0 *"Until S2 lands … v2.6"* cell and its *"§5 arrives in S3"* cell, and `AGENTS.md`'s acceptance range (**A1–A12**). Verified: `-Wall -Wextra -Werror` clean on the edited TU, `ctest` 1/1 (`OK 23 tests`), `grep -n 'sleep_' tests/unit/test_scheduler.cpp` prints **nothing**, guard `OK (22 files scanned)`, **11/11 frozen hashes still match `CONTRACTS.md`** — no header touched. **Findings that must not be re-derived are in §6.** | `src/app/scheduler.cpp`, `tests/support/fake_terminal.hpp`, `tests/unit/test_scheduler.cpp`, `docs/IMPLEMENTATION_PLAN_v3.md`, `AGENTS.md`, `PLAN_V3_PROGRESS.md` |
 
 ## 8. Stage plan (S1–S6)
 
