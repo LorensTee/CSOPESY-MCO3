@@ -1,7 +1,8 @@
 # AGENTS.md — instructions for coding agents in this repository
 
 **Project:** CSOPESY MCO3 — "Marquee Console". A C++17 terminal program (one animation process + a live
-command prompt), a 4-member group submission due **2026-09-23**. `src/main.cpp` is the graded **entry file**;
+command prompt), a 4-member group submission due **2026-09-28** (revised from 2026-09-23 on 2026-09-22).
+`src/main.cpp` is the graded **entry file**;
 `README.txt` is required by the handout. Architecture is **two threads**: an input/command thread (`main`)
 and a marquee worker, one `std::mutex`, one `std::condition_variable`.
 
@@ -10,6 +11,14 @@ partial — `CMakePresets.json` and both CLion run configurations are committed,
 records are not (see the Phase 0 status block in the plan). `include/csopesy/*.hpp` are frozen contracts;
 `src/**` is still `TODO` stubs. Do not assume a task is done because the file exists — check
 `docs/IMPLEMENTATION_PLAN_v2.md` §5 for the phase it belongs to.
+
+**v3 plan in progress (added 2026-09-22).** `docs/IMPLEMENTATION_PLAN_v3.md` simplifies the plan after the
+professor's answers: no `.ini`/config layer, a plain-text (ASCII) marquee instead of the 5×5 glyph engine, no
+`marquee_row`, no `--diag`, no `--measure`, no `FrameBuffer` diffing, and no injected `Clock` — while keeping
+the professor-mandated two threads, the FSD layers, the contract freeze and the 3-OS CI matrix. **The v3.0
+contract change is written out but NOT yet applied: the headers on disk are still v2.6** (the §4.5
+change-control protocol requires W2's agreement first). Until T0.6 lands, v2.6 remains what the tree implements;
+read `docs/PLAN_V3_PROGRESS.md` for the current state, the decision list (D1–D17) and the agreed sequence.
 
 ## 1. Sources of truth (read before you write)
 
