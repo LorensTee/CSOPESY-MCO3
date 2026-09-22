@@ -19,7 +19,7 @@ is honored in full: no header change lands ahead of ratification.** Stage sequen
 | | |
 | --- | --- |
 | **Deadline** | **Monday 2026-09-28** (revised from 2026-09-23 on 2026-09-22 — operator-stated; see §6 provenance). Six days. Urgency removed, so **D17** applies: no workaround for §4.5. |
-| **Current stage** | **S4 — done. The v3 plan is complete (§0–§10).** `IMPLEMENTATION_PLAN_v3.md` carries the delta contract, the workstreams/RACI, the task backlog + Sep-28 schedule, the DoD + A1–A12, the runbook, the risk set, the professor's answers and the self-review. **No header, source, config, test or run-config file has been touched.** |
+| **Current stage** | **S4 — done. The v3 plan is complete (§0–§10) and committed as `f2e2147`** (2026-09-22). **No header, source, config, test or run-config file has been touched.** |
 | **Next action** | **Ratification, then T0.6.** Hand v3 §3.12 + T0.6 Step 1 + the §4.5 per-owner table (§4.5) to W2 and the affected owners. On agreement, record `D18` in this file and execute T0.6's seven steps. **Nothing in §5 can start before T0.6 lands**, except reading the plan. |
 | **Next action (superseded — see the row above)** | **S4** — v3 §6 (DoD + A1–A12), §7 (runbook), §8 (risks), §9 (the professor's answers recorded), §10 (self-review + revision log). `gpt-v14` says to do this **without** waiting for ratification, because it is documentation and gates nobody. ✅ Done 2026-09-22. |
 | **Blocked on** | **Ratification only — not time.** `include/csopesy/*.hpp` is W2 (Byron)'s A/R and the header set changes, so per §4.5 the sequence is *propose → W2 + affected owners agree → bump `CONTRACTS.md` → announce*. The proposal text is ready (v3 §3.12, task **T0.6**); with a 2026-09-28 deadline there is no reason to bypass it. **Applying headers ahead of ratification is explicitly withdrawn (D17).** |
@@ -145,6 +145,7 @@ Recording the reasons here so a future session does not "simplify" them again.
 | 2026-09-22 | **S1.5** | Absorbed `gpt-v13.md`: split the dev/CI flag surface from the quiz surface (D13), wrote the frozen-binary measurement workflow (D14), replaced invented ASCII normalization with an explicit ASCII-input contract confirmed against the professor (D15), adopted the delta-contract structure for §3 (D16, amending D12), and re-prioritized the stages against the deadline as it was then understood, T-1 (§9, **superseded by S2.5**). No header, source, config or CI file touched yet. | `PLAN_V3_PROGRESS.md`, `IMPLEMENTATION_PLAN_v3.md` |
 | 2026-09-22 | **S2 (plan text)** | Wrote `IMPLEMENTATION_PLAN_v3.md` §3.1–§3.12: the delta contract (`Parameters` v3, `cli.hpp`, the command table + the ASCII rule, the plain-text renderer + layout + the tight-terminal priority rule, the scheduler delta list, and the v3.0 freeze checklist). Headers still v2.6. | `IMPLEMENTATION_PLAN_v3.md` |
 | 2026-09-22 | **S4** | `gpt-v14` absorbed. Wrote `IMPLEMENTATION_PLAN_v3.md` §6 (DoD + **A1–A12**, incl. the new tiny-terminal and plain-line cases and the six-command mapping), §7 (runbook: no case file, no `--diag`, Windows-first, all six commands legitimate, no-rebuild pre-flight), §8 (24 live risks + 6 closed with reasons + new 29/30), §9 (the five answers recorded, with the two provenance gaps), §10 (self-review, name-consistency check, the v2.6→v3.0 revision log, review dispositions). Fixed D10's "four required commands" wording — the handout requires **six**. | `IMPLEMENTATION_PLAN_v3.md`, `PLAN_V3_PROGRESS.md` |
+| 2026-09-22 | **S4.1** | Fixed the **last** ASCII contradiction: `IMPLEMENTATION_PLAN_v3.md` §1.4 still said §3.7 *"normalizes non-printable and non-ASCII bytes"*, which contradicted D15 (*rejects*). Caught by `gpt-v15`; now reads *rejects*. Then committed the three documentation changes as **`f2e2147`** (`docs(plan): v3 plan — plain-text marquee, CLI-only parameters, Sep-28 deadline`) and verified the working tree is clean. **No header, source, config, test or run-config file is touched by that commit.** | `AGENTS.md`, `IMPLEMENTATION_PLAN_v3.md`, `PLAN_V3_PROGRESS.md` |
 
 ## 8. Stage plan (S1–S6)
 
@@ -191,3 +192,39 @@ unratified change is a teammate's broken build.
 **Never cut, at any priority:** the six commands, terminal restore on every exit path, the §3.5 ASCII
 text contract (the scroll math's width model depends on it), the two-thread design (professor-mandated,
 answer #3), the video constraints, and `README.txt`'s entry-file statement.
+
+---
+
+## 10. Paste-ready §4.5 proposal (send to W2 Byron + the affected owners)
+
+This is the message to send for §9 step 3. It is deliberately short: the recipients are being asked to approve a
+**specification**, not to review code, and no implementation exists to disrupt (every `src/*.cpp` is still a
+`TODO` stub). The authoritative detail is v3 §3.12, task T0.6 and the §4.5 per-owner table; this is the summary
+they read first.
+
+> **Subject: contracts v3.0 — can you confirm you agree?**
+>
+> Short version: after the professor answered our five questions, we are simplifying the frozen contracts and
+> cutting the parts the handout never required. This is a change to `include/csopesy/*.hpp`, so per §4.5 it
+> needs your OK as freeze owner before anything is applied.
+>
+> **Removed:** the `.ini`/config layer (`config_io.hpp`, `--config`, `quiz_case_<n>.ini`); the 5×5 glyph
+> engine and `ascii_art` (`glyphs.hpp`); `marquee_row`; `--diag`; the `--measure` telemetry; the
+> `FrameBuffer` diffing (`frame_buffer.hpp`); and the extra injected `Clock`.
+>
+> **Kept:** the two threads, one mutex and one condition variable the professor asked for; the FSD layers and
+> `check_layers.sh`; the `CONTRACTS.md` freeze itself; the 3-OS CI matrix; and `--no-tty` for the CI smoke test.
+>
+> **Added:** a small `cli.hpp` with three flags — `--no-tty` (dev/CI only), `--refresh-ms=N`, `--poll-ms=N` —
+> and `Parameters::setText` returning `Ok | Empty | NonAscii`, because the text contract is now explicitly
+> ASCII (out-of-range input is rejected with a message, never mangled).
+>
+> **Effect on you:** the header set goes 13 → 11 and the marker goes v2.6 → v3.0, with the hash table
+> regenerated in the same commit.
+>
+> Detail: `docs/IMPLEMENTATION_PLAN_v3.md` §3.12 (the exact file list, in order), §4.5 (what each owner is
+> accepting) and T0.6 (the seven steps). If you agree, reply and I will record it and land T0.6; if any part is
+> wrong, say which — nothing is applied before that.
+
+**On agreement:** record `D18 — contracts v3.0 ratified by W2 + W1/W3/W4` in §4 above, **then** execute T0.6.
+Until that line exists, no header file changes.
