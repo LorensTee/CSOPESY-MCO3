@@ -1,8 +1,8 @@
-// tests/support/check.hpp — the zero-dep assertion harness (§T0.1 Step 1).
-// 20 lines, no third-party framework: zero install friction on four machines, no network, works on all
-// three CI images. Test doubles live in tests/support/, never in shared/ (§3.1).
+// tests/support/check.hpp — the zero-dependency assertion harness (§T0.1 Step 1).
+// No third-party framework: no install, no network, works on all three CI images. Test doubles live in
+// tests/support/, never under src/ or include/.
 #pragma once
-#include <algorithm>   // std::count  (v1's tests used it without this include)
+#include <algorithm>
 #include <cstdio>
 #include <deque>
 #include <string>

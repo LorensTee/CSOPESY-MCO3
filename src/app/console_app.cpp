@@ -1,6 +1,6 @@
-// src/app/console_app.cpp — the composition root (§3.1, §T2.5).
-// TODO(T2.5): draw the header, Scheduler::start(), become the input/command thread, then run the §3.10
-// shutdown sequence (requestStop -> join -> restore) and print the goodbye line last.
+// src/app/console_app.cpp — the composition root (§T2.5).
+// TODO(T2.5): draw the header, Scheduler::start(), become the input/command thread, then run the shutdown
+// sequence (requestStop -> join -> restore) and print the goodbye line last.
 #include "csopesy/console_app.hpp"
 #include "csopesy/terminal.hpp"
 

@@ -6,13 +6,12 @@ command prompt), a 4-member group submission due **2026-09-28** (revised from 20
 `README.txt` is required by the handout. Architecture is **two threads**: an input/command thread (`main`)
 and a marquee worker, one `std::mutex`, one `std::condition_variable`.
 
-**Current state (2026-09-22): Phase 0 is complete.** T0.1–T0.6 are done and evidenced, and the one CI run on the
-pushed commit is **green on all three OSes** (run `35724109198`). The CLion-side live gate moved to **T3.4**
-because no part of it is observable before features exist, and the only T0.6 item still open is its group
-announcement — `docs/PLAN_V3_PROGRESS.md` §11 has the paste-ready text. `include/csopesy/*.hpp` are the
-**v3.0** frozen contracts;
-`src/**` is still
-`TODO` stubs, so **Phase 1 is the next work**. Do not assume a task is done because the file exists — check
+**Current state (2026-09-22): Phase 0 is complete and fully closed; Phase 1 has started.** T0.1–T0.6 are done,
+the T0.6 group announcement has been sent, and the CI run on the v3.0 commit is **green on all three OSes**
+(run `35724109198`). The CLion-side live gate lives at **T3.4** because nothing about it is observable before
+features exist. `include/csopesy/*.hpp` are the **v3.0** frozen contracts. Of Phase 1, `T1.1`
+(`src/platform/terminal_posix.cpp`) is implemented and pty-verified on the owner's Linux machine; the remaining
+`src/**` files are still `TODO` stubs, so do not assume a task is done because the file exists — check
 `docs/IMPLEMENTATION_PLAN_v3.md` §5 for the phase it belongs to.
 
 **Contracts v3.0 landed 2026-09-22 (task T0.6, ratified by W2 per §4.5).** The tree now matches the v3 plan:
@@ -80,7 +79,7 @@ platform/  is a peer of shared/ and may import shared/ ONLY
   silently stop guarding a file.
 - `Scheduler` lives in `app/` (it holds `Renderer&` and `Interpreter&`), not `entities/`.
 
-## 4. Contracts are frozen (v2.6, 2026-09-16)
+## 4. Contracts are frozen (v3.0, 2026-09-22)
 
 Everything under `include/csopesy/` is an interface contract: signatures, struct fields, constants, and the
 semantics attached to them (ownership, locking, one-writer rules, error behaviour).
@@ -159,3 +158,21 @@ contract change; re-running a tool is not an exemption.
 
 **Simulation is not verification.** Arithmetic or algorithm self-consistency proves nothing about C++,
 compilation, or a real terminal.
+
+## 9. Comment style
+
+Comments are written for the next maintainer reading the code, not as notes to an agent. Keep them concise
+and intentional.
+
+- Prefer readable code over explanatory comments; a comment earns its place only when it says something the
+  code cannot.
+- Explain the non-obvious **why**, plus invariants, ownership rules, platform constraints and safety
+  requirements. Do not narrate control flow or restate a variable/function name in prose.
+- Do not put plan history, review history, agent/LLM reasoning, decision ids (D-numbers) or rejected designs
+  in source comments — that lives in `docs/`.
+- Avoid long block comments unless they document a real contract or invariant.
+- Do not delete a comment merely because it is short; delete it when the code already says the same thing.
+- Keep every `TODO(task)` marker until that task is complete.
+- A landmine comment (`CMakeLists.txt`'s flag block, `Threads::Threads`, the `ctest` timeout, the frozen
+  headers) stays — it is the only thing stopping the next person from "cleaning it up".
+- `include/csopesy/*.hpp` are **frozen**: a comment edit there is a contract change under §4, not a cleanup.

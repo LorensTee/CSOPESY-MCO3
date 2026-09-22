@@ -1,6 +1,6 @@
-// src/entities/process.cpp — the PCB (§3.8, §T1.2).
-// TODO(T1.2): start() is false when already Running and clears hasRendered; stop() is false when already
-// Stopped. hasRendered == false makes the next tick draw immediately (fresh OR restarted).
+// src/entities/process.cpp — the PCB (§T1.2).
+// TODO(T1.2): start() returns false when already Running and clears hasRendered; stop() returns false when
+// already Stopped. hasRendered == false makes the next tick draw immediately.
 #include "csopesy/process.hpp"
 
 namespace csopesy {

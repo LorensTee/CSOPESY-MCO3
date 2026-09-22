@@ -1,5 +1,5 @@
-// tests/support/check.cpp — the harness runner (§T0.1 Step 1). Every registered TEST() runs; a non-zero
-// exit means at least one assertion failed, which is what CTest's `unit` test reports.
+// tests/support/check.cpp — the harness runner. Every registered TEST() runs; a non-zero exit means at
+// least one assertion failed, which is what CTest's `unit` test reports.
 #include "check.hpp"
 int main() {
   for (const auto& c : ck::registry()) { c.fn(); }

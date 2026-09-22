@@ -1,8 +1,7 @@
-// src/features/commands/interpreter.cpp — command recognition and the response table (v3.0 §3.7, §T2.4).
-// TODO(T2.4): trim -> split on the first whitespace run -> case-sensitive match against the SIX commands;
-// set_speed's argument must match [-+]?[0-9]+ in full (never a silent std::stoi partial parse); and set_text
-// has THREE outcomes to render from Parameters::setText — Ok / Empty / NonAscii — so a non-ASCII argument gets
-// its own message instead of being mangled (D15; the §3.7 row added by v3).
+// src/features/commands/interpreter.cpp — command recognition and the response table (§3.7, §T2.4).
+// TODO(T2.4): trim, split on the first whitespace run, then match the six commands case-sensitively;
+// set_speed's argument must match [-+]?[0-9]+ in full (never a silent partial std::stoi); set_text renders
+// all three Parameters::setText outcomes (Ok / Empty / NonAscii) instead of mangling the argument.
 #include "csopesy/interpreter.hpp"
 
 namespace csopesy {

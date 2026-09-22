@@ -1,6 +1,6 @@
-// src/platform/terminal_win32.cpp — the Windows backend (§3.4, §T3.1).
-// Defines Terminal::create(), installShutdownHandlers() and shutdownRequested() EXACTLY ONCE, in the one
-// platform file CMake selects; there is no runtime #ifdef anywhere else (§3.4).
+// src/platform/terminal_win32.cpp — the Windows backend (§3.4, §T3.1). Terminal::create(),
+// installShutdownHandlers() and shutdownRequested() are defined exactly once, in the one platform file CMake
+// selects; there is no runtime #ifdef anywhere else.
 #include <csignal>
 #include <memory>
 
@@ -10,9 +10,9 @@
 namespace csopesy {
 namespace {
 
-// SetConsoleCtrlHandler runs on a THREAD OF ITS OWN, so it cannot interrupt the input thread's blocked
-// WaitForSingleObject; polling_ms bounds Ctrl+C-to-exit latency instead (§3.8). Read-and-clear stays on
-// the input thread only, exactly as on POSIX.
+// SetConsoleCtrlHandler runs on its own thread, so it cannot interrupt the input thread's blocked
+// WaitForSingleObject; polling_ms bounds Ctrl+C-to-exit latency instead. Read-and-clear stays on the input
+// thread only.
 volatile std::sig_atomic_t g_shutdownRequested = 0;
 
 }  // namespace

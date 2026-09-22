@@ -1,13 +1,12 @@
 #!/usr/bin/env bash
-# scripts/check_layers.sh — the §3.1 layer guard, wired into T0.1 and the CI matrix (§T0.3).
+# scripts/check_layers.sh — the §3.1 layer guard, wired into the CI matrix.
 #
 # Layer order, downward-only imports:   app > features > entities > shared
 # platform/ is a peer of shared/ whose ONLY allowed import is shared/.
-# The guard exists because the entities/scheduler.cpp violation survived three prose review rounds (§10.8).
 #
-# §3.2 keeps every contract header in one flat directory (include/csopesy/), so the layer of a header
-# cannot be inferred from its path — hence the explicit map below. A header that is not in the map is a
-# hard failure: the guard must never silently stop guarding a new contract header.
+# Contract headers live flat in include/csopesy/, so a header's layer cannot be inferred from its path —
+# hence the explicit map below. A header that is not in the map is a hard failure: the guard must never
+# silently stop guarding a new contract header.
 #
 # Usage: bash scripts/check_layers.sh   (works from any directory; non-zero exit on violation)
 

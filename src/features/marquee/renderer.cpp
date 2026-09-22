@@ -1,11 +1,9 @@
-// src/features/marquee/renderer.cpp — the plain-text marquee: scroll math + frame assembly (v3.0 §3.9).
-//
-// TODO(T4.1): scrollOffset wraps at textWidth + bandWidth (the text scrolls fully off before re-entering).
+// src/features/marquee/renderer.cpp — the plain-text marquee: scroll math + frame assembly (§3.9).
+// TODO(T4.1): scrollOffset wraps at textWidth + bandWidth (the text scrolls fully off before it re-enters).
 // TODO(T4.2): buildFrame assembles ONE string — cursor-home, the chrome rows, the band row at kBandRow, and
-// the prompt row LAST. There is no glyph table and no FrameBuffer: the band is one row of scrolling text
-// (D2, D6), so this file is scroll arithmetic plus string assembly and nothing else.
-// TODO(T4.3): sliceRow is ALWAYS exactly bandWidth bytes; tight terminals drop chrome from the bottom up but
-// never drop the band or the prompt row, and no line may ever exceed `cols` (§3.9).
+// the prompt row last.
+// TODO(T4.3): sliceRow is always exactly bandWidth bytes; tight terminals drop chrome from the bottom up but
+// never the band or the prompt row, and no line may exceed `cols`.
 #include "csopesy/renderer.hpp"
 
 namespace csopesy {
@@ -16,7 +14,7 @@ int scrollOffset(long long, int, int) {
 }
 
 std::string sliceRow(std::string_view, int bandWidth, int) {
-  // TODO(T4.3): slice + pad. The width invariant (§3.9) already holds here: exactly bandWidth bytes.
+  // TODO(T4.3): slice + pad to exactly bandWidth bytes.
   if (bandWidth > 0) {
     return std::string(static_cast<unsigned>(bandWidth), ' ');
   }
