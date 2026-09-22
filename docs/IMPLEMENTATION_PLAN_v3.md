@@ -834,18 +834,28 @@ constraints; `README.txt`'s entry-file statement.
 
 ### Phase 0 — contracts and a green pipeline (Byron leads; Lorens/Nathan/Kim review)
 
-**Status (2026-09-22):** T0.1–T0.4 **complete**, with evidence in v2 §T0.1–§T0.4 (their task bodies are
-unchanged and remain normative). T0.5 **partial**: the scriptable, committed half is done — `CMakePresets.json`
-and both run configurations landed in `78dc8a3` — while the CLion-side live gate is **moved to T3.4** by v3,
-because gpt-v12 is right that no part of it can be observed before features exist (and its `--config` steps are
-deleted anyway). **T0.6 is new in v3 and gates every Phase 1 task.**
+**Status (2026-09-22): Phase 0 is COMPLETE.** T0.1–T0.4 complete, with evidence in v2 §T0.1–§T0.4 (their task
+bodies are unchanged and remain normative). T0.5 **partial by design**: the scriptable, committed half is done —
+`CMakePresets.json` and both run configurations landed in `78dc8a3` — while the CLion-side live gate is **moved to
+T3.4** by v3, because gpt-v12 is right that no part of it can be observed before features exist (and its
+`--config` steps are deleted anyway). **T0.6 — new in v3, and the gate for every Phase 1 task — is DONE and
+pushed:** the contracts are v3.0 as `d6379df`, ratified by W2 as **D18**. The only T0.6 item outstanding is
+**Step 6's group announcement** (`PLAN_V3_PROGRESS.md` §11 has the paste-ready text) — a human action that blocks
+nobody.
 
-Re-verified locally on 2026-09-17: `bash scripts/check_layers.sh` → `check_layers: OK (26 files scanned)`;
-`ctest --preset debug` → **1/1 passed**; `git hash-object include/csopesy/*.hpp` → **13/13 match** `CONTRACTS.md`.
-CI: runs `35118223659` / `35118445611` (T0.3), `35119216051` (T0.4), `35120070872` (T0.5) — 3/3 jobs green on
-each. Commits: `fd0bb63` (T0.1) · `38818ad` (T0.2) · `7f541c2` (T0.3) · `3d5d0e5` (T0.4) · `78dc8a3` (T0.5,
-scriptable half). **Phase 0's green CI does not prove the program works** — every `src/*.cpp` is still a `TODO`
-stub, and the `unit` target reports `OK 0 tests` on purpose.
+Re-verified locally on **2026-09-17** (v2.6, 13 headers): `bash scripts/check_layers.sh` →
+`check_layers: OK (26 files scanned)`; `ctest --preset debug` → **1/1 passed**; `git hash-object
+include/csopesy/*.hpp` → **13/13 match** `CONTRACTS.md`.
+
+Re-verified locally on **2026-09-22** (v3.0, 11 headers): guard → `OK (22 files scanned)`, the count this plan
+predicted *before* the change (§10.3); `ctest` → **1/1 passed**; hashes → **11/11 match**, with the **7 untouched
+headers still on their exact v2.6 blobs** — which is what makes the delta checkable rather than asserted.
+
+CI: runs `35118223659` / `35118445611` (T0.3), `35119216051` (T0.4), `35120070872` (T0.5) and `35724109198`
+(**T0.6** — ubuntu 17 s, macOS 26 s, Windows 45 s) — 3/3 jobs green on each. Commits: `fd0bb63` (T0.1) ·
+`38818ad` (T0.2) · `7f541c2` (T0.3) · `3d5d0e5` (T0.4) · `78dc8a3` (T0.5, scriptable half) · **`d6379df`
+(T0.6)**. **Phase 0's green CI does not prove the program works** — every `src/*.cpp` is still a `TODO` stub, and
+the `unit` target reports `OK 0 tests` on purpose.
 
 #### T0.6 — Re-freeze the contracts as **v3.0** (W2 A/R; W1/W3/W4 consulted) — **the gate for Phase 1**
 
@@ -867,20 +877,19 @@ regenerated `git hash-object` table → both run configs' `PROGRAM_PARAMS` clear
 - [x] **Step 5 — build and freeze verified locally.** `cmake --preset debug` → `cmake --build --preset debug` →
 `ctest --preset debug` reports *100% tests passed, 0 tests failed out of 1 (unit)*. **11/11** hashes match
 `git hash-object include/csopesy/*.hpp`, and the **7 headers nobody needed to touch still carry their exact
-v2.6 blob hashes** — checkable evidence that this is the delta claimed. **The CI half is unobserved** until the
-push (see *still open* below).
+v2.6 blob hashes** — checkable evidence that this is the delta claimed. **The CI half is green on all three OSes** — [run 35724109198](https://github.com/LorensTee/CSOPESY-MCO3/actions/runs/35724109198): ubuntu-latest 17 s, macos-latest 26 s, windows-latest 45 s.
 - [ ] **Step 6 — announce. NOT DONE: this one is the operator's to send.** The group message stating the marker
 is v3.0, the three deleted headers, and the four contract removals (`asciiArt`, `marqueeRow`, `measurePath`,
-`Clock`) — so nobody re-adds one from memory. Paste-ready text: `PLAN_V3_PROGRESS.md` §10.
+`Clock`) — so nobody re-adds one from memory. Paste-ready text: `PLAN_V3_PROGRESS.md` §11.
 - [x] **Step 7 — committed** as **`d6379df`**
 `chore(contracts)!: v3.0 — no config layer, plain-text band, CLI-only flags (R3, R7, R8)` (30 files, the preset
 export deliberately kept out of it as `cc74d5d`).
   **Evidence recorded:** the guard's count line, the `ctest` summary, the hash check.
 
-> **Still open from T0.6 — two items, neither blocks Phase 1.** (a) **Step 6's group announcement**: a human
-action, and its text is ready in `PLAN_V3_PROGRESS.md` §10. (b) **The CI run on all three OSes**: it requires
-pushing `d6379df`, since CI is triggered by the push rather than by the commit. Local verification is green; CI
-is simply unobserved until then, and `AGENTS.md` §8 item 2 stays open until it is.
+> **Still open from T0.6 — one item, and it does not block Phase 1:** **Step 6's group announcement**, a human
+action whose text is ready in `PLAN_V3_PROGRESS.md` §11. **The CI half closed on 2026-09-22:** run
+[35724109198](https://github.com/LorensTee/CSOPESY-MCO3/actions/runs/35724109198) is green on ubuntu-latest,
+macos-latest and windows-latest, so `AGENTS.md` §8 item 2 is satisfied.
 
 ### Phase 1A — W4 (Kim): the plain-text marquee (pure logic, no platform)
 
@@ -1141,10 +1150,10 @@ the deadline is 2026-09-28.
 `src/*.cpp` is still `TODO` stubs — not placeholders. There are no `TBD`, no `FIXME` and no orphan
 cross-references. **T0.6's seven boxes are all checked except Step 6** — the ratification, the header change, the
 predicted guard count, the build/freeze verification and the commit each carry their evidence inline at §T0.6 and
-in `PLAN_V3_PROGRESS.md` §4/§7. Step 6 (the group announcement) and the CI run are the two items left open on
-purpose: both need a human or a push, neither blocks Phase 1, and the paste-ready announcement is in
-`PLAN_V3_PROGRESS.md` §10. Every other task in §5 is written as work to perform, not as a step to tick off in
-this file.
+in `PLAN_V3_PROGRESS.md` §4/§7. Step 6 (the group announcement) is the one item left open on purpose: it needs a
+human, it does not block Phase 1, and the paste-ready announcement is in `PLAN_V3_PROGRESS.md` §11. The CI half
+is closed — green on all three OSes in run 35724109198. Every other task in §5 is written as work to perform,
+not as a step to tick off in this file.
 
 ### 10.3 Name/type consistency check
 
@@ -1227,5 +1236,5 @@ code. Until it lands, this table is the disposition of record.
 | **S2.5** | Deadline corrected to **2026-09-28**; D17 recorded (no header change ahead of ratification) | ✅ |
 | **S3** | §4 (workstreams + RACI) + §5 (task backlog, T0.6, the Sep-28 schedule) | ✅ |
 | **S4** | §6 (DoD + A1–A12), §7 (runbook), §8 (risks), §9 (the answers recorded), §10 (self-review + the revision log). `gpt-v14` absorbed | ✅ this document |
-| **S2 (bytes)** | The header edits, the guard map, `CONTRACTS.md` v3.0, the run configs, `config/` — per §3.12 / **T0.6** | ✅ **landed 2026-09-22 as `d6379df`** (30 files). Header set 13 → 11; guard `OK (22 files scanned)`; `ctest` 1/1; 11/11 hashes match. T0.6 Steps 6 (announce) and the CI run are the only parts still open |
+| **S2 (bytes)** | The header edits, the guard map, `CONTRACTS.md` v3.0, the run configs, `config/` — per §3.12 / **T0.6** | ✅ **landed 2026-09-22 as `d6379df`** (30 files), pushed. Header set 13 → 11; guard `OK (22 files scanned)`; `ctest` 1/1; 11/11 hashes match; CI green on all three OSes (run 35724109198). Only Step 6 (announce) stays open |
 | **S5** | `AGENTS.md` (§2 commands, §5 clock + threading invariants, §7 behaviour contracts), v2's superseded banner, `REVIEW_ADJUDICATION.md` round 8 for `gpt-v9`…`gpt-v14` | ⬜ P3 — after `ctest` is green |

@@ -6,10 +6,12 @@ command prompt), a 4-member group submission due **2026-09-28** (revised from 20
 `README.txt` is required by the handout. Architecture is **two threads**: an input/command thread (`main`)
 and a marquee worker, one `std::mutex`, one `std::condition_variable`.
 
-**Current state (2026-09-22): Phase 0 is complete, with two recorded items outstanding.** T0.1–T0.6 are done
-and evidenced; the CLion-side live gate moved to **T3.4** because no part of it is observable before features
-exist, and T0.6's group announcement plus the first CI run on the pushed commit are what remain
-(`docs/PLAN_V3_PROGRESS.md` §1). `include/csopesy/*.hpp` are the **v3.0** frozen contracts; `src/**` is still
+**Current state (2026-09-22): Phase 0 is complete.** T0.1–T0.6 are done and evidenced, and the one CI run on the
+pushed commit is **green on all three OSes** (run `35724109198`). The CLion-side live gate moved to **T3.4**
+because no part of it is observable before features exist, and the only T0.6 item still open is its group
+announcement — `docs/PLAN_V3_PROGRESS.md` §11 has the paste-ready text. `include/csopesy/*.hpp` are the
+**v3.0** frozen contracts;
+`src/**` is still
 `TODO` stubs, so **Phase 1 is the next work**. Do not assume a task is done because the file exists — check
 `docs/IMPLEMENTATION_PLAN_v3.md` §5 for the phase it belongs to.
 
