@@ -6,10 +6,11 @@ command prompt), a 4-member group submission due **2026-09-28** (revised from 20
 `README.txt` is required by the handout. Architecture is **two threads**: an input/command thread (`main`)
 and a marquee worker, one `std::mutex`, one `std::condition_variable`.
 
-**Current state (2026-09-17): Phase 0 is nearly done.** T0.1–T0.4 are complete and evidenced; T0.5 is
-partial — `CMakePresets.json` and both CLion run configurations are committed, but the CLion-side gate and its
-records are not (see the Phase 0 status block in the plan). `include/csopesy/*.hpp` are frozen contracts;
-`src/**` is still `TODO` stubs. Do not assume a task is done because the file exists — check
+**Current state (2026-09-22): Phase 0 is complete, with two recorded items outstanding.** T0.1–T0.6 are done
+and evidenced; the CLion-side live gate moved to **T3.4** because no part of it is observable before features
+exist, and T0.6's group announcement plus the first CI run on the pushed commit are what remain
+(`docs/PLAN_V3_PROGRESS.md` §1). `include/csopesy/*.hpp` are the **v3.0** frozen contracts; `src/**` is still
+`TODO` stubs, so **Phase 1 is the next work**. Do not assume a task is done because the file exists — check
 `docs/IMPLEMENTATION_PLAN_v3.md` §5 for the phase it belongs to.
 
 **Contracts v3.0 landed 2026-09-22 (task T0.6, ratified by W2 per §4.5).** The tree now matches the v3 plan:
@@ -18,13 +19,13 @@ diffing, and no injected `Clock` — while keeping the professor-mandated two th
 contract freeze and the 3-OS CI matrix. `CONTRACTS.md` is the v3.0 marker. Read
 `docs/PLAN_V3_PROGRESS.md` for the decision list (D1–D18) and the current state.
 
-**v3 plan in progress (added 2026-09-22).** `docs/IMPLEMENTATION_PLAN_v3.md` simplifies the plan after the
+**The v3 plan is in force (added 2026-09-22).** `docs/IMPLEMENTATION_PLAN_v3.md` simplifies the plan after the
 professor's answers: no `.ini`/config layer, a plain-text (ASCII) marquee instead of the 5×5 glyph engine, no
 `marquee_row`, no `--diag`, no `--measure`, no `FrameBuffer` diffing, and no injected `Clock` — while keeping
-the professor-mandated two threads, the FSD layers, the contract freeze and the 3-OS CI matrix. **The v3.0
-contract change is written out but NOT yet applied: the headers on disk are still v2.6** (the §4.5
-change-control protocol requires W2's agreement first). Until T0.6 lands, v2.6 remains what the tree implements;
-read `docs/PLAN_V3_PROGRESS.md` for the current state, the decision list (D1–D17) and the agreed sequence.
+the professor-mandated two threads, the FSD layers, the contract freeze and the 3-OS CI matrix. The header
+change landed as **T0.6** (see above), so `docs/IMPLEMENTATION_PLAN_v2.md` is now **frozen history**, not a
+second live plan. Read `docs/PLAN_V3_PROGRESS.md` for the current state, the decision list (D1–D18) and the
+agreed sequence.
 
 ## 1. Sources of truth (read before you write)
 

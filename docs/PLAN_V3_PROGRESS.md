@@ -8,7 +8,7 @@ intended — **update both in the same session**.
 **Rule for this file:** update it at the **end of every working session**, before you stop. A session that
 changes nothing still gets a dated line in §7. Never mark a stage done without the artifact it produced.
 
-**Established:** 2026-09-22 · **Last updated:** 2026-09-22 (stage S1.5 complete)
+**Established:** 2026-09-22 · **Last updated:** 2026-09-22 (**T0.6 landed — contracts are v3.0**)
 **Deadline: Monday 2026-09-28** (revised from 2026-09-23 — six days, not one). **The §4.5 change-control protocol
 is honored in full: no header change lands ahead of ratification.** Stage sequence in §9.
 
@@ -19,18 +19,18 @@ is honored in full: no header change lands ahead of ratification.** Stage sequen
 | | |
 | --- | --- |
 | **Deadline** | **Monday 2026-09-28** (revised from 2026-09-23 on 2026-09-22 — operator-stated; see §6 provenance). Six days. Urgency removed, so **D17** applies: no workaround for §4.5. |
-| **Current stage** | **S4 — done. The v3 plan is complete (§0–§10) and committed as `f2e2147`** (2026-09-22). **No header, source, config, test or run-config file has been touched.** |
-| **Next action** | **Ratification, then T0.6.** Hand v3 §3.12 + T0.6 Step 1 + the §4.5 per-owner table (§4.5) to W2 and the affected owners. On agreement, record `D18` in this file and execute T0.6's seven steps. **Nothing in §5 can start before T0.6 lands**, except reading the plan. |
-| **Next action (superseded — see the row above)** | **S4** — v3 §6 (DoD + A1–A12), §7 (runbook), §8 (risks), §9 (the professor's answers recorded), §10 (self-review + revision log). `gpt-v14` says to do this **without** waiting for ratification, because it is documentation and gates nobody. ✅ Done 2026-09-22. |
-| **Blocked on** | **Ratification only — not time.** `include/csopesy/*.hpp` is W2 (Byron)'s A/R and the header set changes, so per §4.5 the sequence is *propose → W2 + affected owners agree → bump `CONTRACTS.md` → announce*. The proposal text is ready (v3 §3.12, task **T0.6**); with a 2026-09-28 deadline there is no reason to bypass it. **Applying headers ahead of ratification is explicitly withdrawn (D17).** |
-| **Do not do** | Do **not** perform v2's T0.5 manual checklist (CLion GUI, terminal gate, `--diag` sanity check). gpt-v12.md is right: the checks reference `--config=config/csopesy.ini`, which v3 deletes, and features do not exist to observe anyway. |
-| **Then** | **Ratify T0.6 with W2 + the affected owners** → apply the v3.0 headers (T0.6) → S6 (implement Phase 1) → S5 (`AGENTS.md`, v2 banner, adjudication round 8). The full sequence is §9. |
+| **Current stage** | **T0.6 — DONE. The migration is over; Phase 1 is the next work.** Contracts are **v3.0** on disk, committed as **`d6379df`** (2026-09-22): the guard prints `check_layers: OK (22 files scanned)`, `ctest` is green (1/1), and **11/11** hashes match `CONTRACTS.md`. |
+| **Next action** | **Start Phase 1** (§9 step 5). W4's `T4.1`–`T4.3`, W1's `T1.1`–`T1.3` and W3's `T3.1` can now all begin: nothing they need is blocked any more. **`T1.3` (the threaded scheduler) is the critical path.** Task bodies and ids are in `IMPLEMENTATION_PLAN_v3.md` §5 — task ids keep their v2 numbers, and §3.8's delta list is what applies to the scheduler. |
+| **Two open items from T0.6 — neither blocks Phase 1** | (a) **T0.6 Step 6's group announcement**: a human action, so it is left unchecked; the paste-ready text is §10 below. (b) **The first CI run on `d6379df`**: CI triggers on the push, not the commit, so this needs a `git push`. `AGENTS.md` §8 item 2 ("CI green on all three OS families") stays open until that run is read. |
+| **Blocked on** | **Nothing.** The §4.5 gate is satisfied and recorded as **D18** (W2 Byron, the freeze owner, 2026-09-22). If W3 or W4 objects to the change, `d6379df` is one revertable commit and every `src/*.cpp` is still a `TODO` stub, so nothing consumes it yet. |
+| **Do not do** | Do **not** perform v2's T0.5 manual checklist (CLion GUI, terminal gate, `--diag` sanity check). `gpt-v12.md` is right: its steps reference `--config=config/csopesy.ini`, which v3 deleted, and the surviving audit moved to **T3.4** — a hand-run checklist that needs features to observe. |
+| **Then** | S6 (implement Phase 1) → S5 (`AGENTS.md` follow-ups, the v2 superseded banner, adjudication round 8). The full sequence is §9. |
 
 ## 2. How to resume in a fresh chat (read in this order)
 
 1. `AGENTS.md` — repo rules (layers, frozen contracts, threading invariants, definition of done).
 2. **This file** — where the migration stands and what not to redo.
-3. `docs/IMPLEMENTATION_PLAN_v3.md` — the shape of the target (incomplete until S4; read the banner).
+3. `docs/IMPLEMENTATION_PLAN_v3.md` — the target (complete, and **v3.0 is applied**; read the banner).
 4. `docs/replies/gpt-v9.md` … `gpt-v12.md` — the review input that triggered v3 (§3 below).
 5. `docs/REVIEW_ADJUDICATION.md` — why v2.6 looks the way it does, **especially** the points v9/v10 try to re-open.
 6. `docs/IMPLEMENTATION_PLAN_v2.md` — still the only complete frozen plan until v3 is finished. Never implement
@@ -67,6 +67,7 @@ is honored in full: no header change lands ahead of ratification.** Stage sequen
 | D15 | **The text contract is explicitly ASCII input.** After §3.7's trim + internal-run preservation, every byte of a `set_text` argument must be printable ASCII `0x20`–`0x7E`; otherwise the command is **rejected with a message and the marquee text is unchanged**. **No normalization is invented** — the fix for byte-slicing is the input contract, not a mangling step, so the user's requested text is never silently altered. Operator: *"Just ASCII is fine according to my professor."* | `gpt-v13.md` pt 3 + operator confirmation (professor) | W4 Kim (PP: renderer) + W2 |
 | D16 | **v3 §3 is a delta contract, not a transcription.** Changed contracts (`parameters.hpp`, `cli.hpp`, `renderer.hpp`, `scheduler.hpp`'s deltas) are written out in full; unchanged frozen text (`terminal.hpp`, `keys.hpp`, `shutdown.hpp`, `process.hpp`, the §3.8 threading contract, §3.11) is incorporated **by reference to v2.6, which is frozen and never edited**. Reason: duplicating ~500 lines of seven-round-adjudicated prose is a silent-drift risk, and the freeze makes the reference stable. | This session | W1 Lorens |
 | D17 | **The deadline moved to Monday 2026-09-28, so the §4.5 protocol is honored in full and no header changes before ratification.** The earlier recommendation to apply the v3.0 headers "ahead of ratification" was justified *only* by T-1 schedule pressure; that justification is gone and the option is **withdrawn**. Sequence: correct the stale dates → finish §5 → ratify with W2 + affected owners → apply the headers → implement → verification/PPT/runbook. | Operator instruction, 2026-09-22 | Operator; §4.5 sign-off by W2 Byron |
+| D18 | **Contracts re-frozen as v3.0 — ratified and LANDED.** The header set went 13 → 11 (`cli.hpp` added; `config_io.hpp`, `glyphs.hpp`, `frame_buffer.hpp` deleted) and the four contract removals (`asciiArt`, `marqueeRow`, `measurePath`, the injected `Clock`) plus `TextResult` were applied in §3.12's order, as commit **`d6379df`**. Guard `OK (22 files scanned)` (the predicted count), `ctest` 1/1, 11/11 hashes matching — including the 7 untouched headers still carrying their v2.6 blob hashes. | v3 §3.12 + task **T0.6** Step 2; **W2 Byron (the §4.5 freeze owner, A/R) agreed 2026-09-22** — *"he agrees with all of it"*, relayed by the operator | W2 Byron (ratifier). Operator/W1 concurs as the driver. **Provenance gap, recorded not glossed:** W3's and W4's individual acknowledgment is **not in this repo**. §4.5's gate is the freeze owner's sign-off, and the blast radius is contained — every `src/*.cpp` is still a `TODO` stub, so a single revert of `d6379df` restores v2.6 cleanly if either objects. |
 
 ## 5. Rejected, do not re-open without new primary evidence
 
@@ -131,10 +132,25 @@ Recording the reasons here so a future session does not "simplify" them again.
   (A1 = `help`, A2/A3 = start/stop, A4 = `set_text`, A5 = `set_speed`, A6 = `exit`) and §7's runbook says
   outright that any of the six is legitimate in a take. Recorded here because a wording slip in a decision log is
   exactly how a requirement gets quietly dropped later.
-- **The v3 plan is now self-sufficient for implementation.** §0–§10 are complete: no "TBD" anywhere, and the only
-  unchecked boxes are T0.6's seven gated steps. Unchanged task *bodies* still live in v2 and are named normative
-  in place (v3 §10.4 deviation 2), so nobody has to guess which document to read for `T1.1`, `T2.5`, `T3.1`,
-  `T3.4` or `T0.1`–`T0.5b`.
+- **The v3 plan is now self-sufficient for implementation.** §0–§10 are complete: no "TBD" anywhere. After
+  T0.6 (below) the only unchecked box left in `IMPLEMENTATION_PLAN_v3.md` is T0.6 **Step 6**, which a human must
+  send. Unchanged task *bodies* still live in v2 and are named normative in place (v3 §10.4 deviation 2), so
+  nobody has to guess which document to read for `T1.1`, `T2.5`, `T3.1`, `T3.4` or `T0.1`–`T0.5b`.
+- **The predicted guard count was confirmed, not adjusted.** v3 §10.3 predicted `OK (22 files scanned)` for T0.6
+  **before** the change was made (26 − 3 headers − 3 `.cpp` + `cli.hpp` + `cli.cpp`), and the finished tree prints
+  exactly 22. A count that is merely *observed* and then written down proves nothing; a number predicted in
+  advance and then matched is a real check that no file was missed on either side.
+- **The v3.0 delta is verifiable from the freeze table alone.** **7 of the 11 headers still carry their exact
+  v2.6 `git hash-object` values** (`console_app`, `interpreter`, `keys`, `line_editor`, `process`, `shutdown`,
+  `terminal`). A reader who distrusts the commit message can diff the two tables and see that the revision is
+  precisely the four headers it claims — the hash table turns "trust me" into "check me". This is the strongest
+  argument for keeping `CONTRACTS.md` that this session produced.
+- **A tooling false positive, permanently fixed — and it was not a contract problem.** Analyzer/LSP runs on
+  `tests/unit/*.cpp` reported `check.hpp` as unresolved (`'check.hpp' file not found`), because the real
+  `-I tests/support` comes from a per-target `target_include_directories` that a blind heuristic cannot see. With
+  `build/debug/compile_commands.json` present the same four files report **0** diagnostics. The `debug` configure
+  preset now exports it (**`cc74d5d`**), so the false blocker stops recurring for every future session and every
+  teammate. Recorded because the tempting "fix" was to edit the test files, which was never the actual problem.
 
 ## 7. Session log (newest last)
 
@@ -146,6 +162,7 @@ Recording the reasons here so a future session does not "simplify" them again.
 | 2026-09-22 | **S2 (plan text)** | Wrote `IMPLEMENTATION_PLAN_v3.md` §3.1–§3.12: the delta contract (`Parameters` v3, `cli.hpp`, the command table + the ASCII rule, the plain-text renderer + layout + the tight-terminal priority rule, the scheduler delta list, and the v3.0 freeze checklist). Headers still v2.6. | `IMPLEMENTATION_PLAN_v3.md` |
 | 2026-09-22 | **S4** | `gpt-v14` absorbed. Wrote `IMPLEMENTATION_PLAN_v3.md` §6 (DoD + **A1–A12**, incl. the new tiny-terminal and plain-line cases and the six-command mapping), §7 (runbook: no case file, no `--diag`, Windows-first, all six commands legitimate, no-rebuild pre-flight), §8 (24 live risks + 6 closed with reasons + new 29/30), §9 (the five answers recorded, with the two provenance gaps), §10 (self-review, name-consistency check, the v2.6→v3.0 revision log, review dispositions). Fixed D10's "four required commands" wording — the handout requires **six**. | `IMPLEMENTATION_PLAN_v3.md`, `PLAN_V3_PROGRESS.md` |
 | 2026-09-22 | **S4.1** | Fixed the **last** ASCII contradiction: `IMPLEMENTATION_PLAN_v3.md` §1.4 still said §3.7 *"normalizes non-printable and non-ASCII bytes"*, which contradicted D15 (*rejects*). Caught by `gpt-v15`; now reads *rejects*. Then committed the three documentation changes as **`f2e2147`** (`docs(plan): v3 plan — plain-text marquee, CLI-only parameters, Sep-28 deadline`) and verified the working tree is clean. **No header, source, config, test or run-config file is touched by that commit.** | `AGENTS.md`, `IMPLEMENTATION_PLAN_v3.md`, `PLAN_V3_PROGRESS.md` |
+| 2026-09-22 | **S2 (bytes) = T0.6** | **W2 Byron (the §4.5 freeze owner) ratified the v3.0 contract change**, so T0.6's seven steps were executed in §3.12's order: 4 header rewrites + `cli.hpp`, 3 header deletions, the guard's `layer_of_header()` map, `CONTRACTS.md`'s v3.0 marker + regenerated hash table, both run configs' `PROGRAM_PARAMS` cleared, `config/csopesy.ini` deleted, the 6 source/test deletions, both CMake target lists, and the stub doc-comments that named the deleted work. Verified: guard `check_layers: OK (22 files scanned)` — the prediction in v3 §10.3, made before the change, **confirmed exactly**; `ctest` 1/1; **11/11** hashes matching, with the 7 untouched headers still on their v2.6 blobs. Landed as **`d6379df`** (30 files), with the `compile_commands.json` preset export deliberately kept out as **`cc74d5d`**. Recorded as **D18**. **Still open: T0.6 Step 6 (the group announcement, §11 below) and the first CI run, which needs the push.** | `include/csopesy/*.hpp`, `scripts/check_layers.sh`, `CONTRACTS.md`, `CMakeLists.txt`, `.idea/runConfigurations/*.xml`, `src/**`, `tests/unit/**`, `AGENTS.md`, `IMPLEMENTATION_PLAN_v3.md`, `clion-run-config.md` |
 
 ## 8. Stage plan (S1–S6)
 
@@ -154,7 +171,7 @@ Recording the reasons here so a future session does not "simplify" them again.
 | **S1** | This log + v3 §0–§2 + §3.0 change inventory | ✅ done 2026-09-22 |
 | **S1.5** | gpt-v13 absorbed: D13–D16 + the §9 stage sequence | ✅ done 2026-09-22 |
 | **S2 (plan text)** | v3 §3.1–§3.12 — the delta contract | ✅ done 2026-09-22 |
-| **S2 (bytes)** | the header edits + `cli.hpp` + `check_layers.sh` map + `CONTRACTS.md` v3.0 + both run configs' `PROGRAM_PARAMS` cleared + `config/csopesy.ini` deleted | ⬜ **waiting on ratification** — task **T0.6**; no workaround (D17) |
+| **S2 (bytes)** | the header edits + `cli.hpp` + `check_layers.sh` map + `CONTRACTS.md` v3.0 + both run configs' `PROGRAM_PARAMS` cleared + `config/csopesy.ini` deleted | ✅ **landed 2026-09-22 as `d6379df`** (task **T0.6**, 30 files). Header set 13 → 11; guard `OK (22 files scanned)`; `ctest` 1/1; 11/11 hashes match. Only Step 6 (announce) and the CI run stay open |
 | **S3** | v3 §4 (workstreams/RACI) + §5 (task backlog incl. T0.6, Phase 0 status carried with evidence, Sep-28 schedule) | ✅ done 2026-09-22 |
 | **S4** | v3 §6 (DoD + A1–A12) + §7 (runbook) + §8 (risks) + §9 (the answers) + §10 (self-review, revision log, review dispositions) | ✅ done 2026-09-22 |
 | **S5** | `AGENTS.md` (§2 commands, §5 clock/threading invariants, §7 behaviour contracts) + superseded banner on v2 + `REVIEW_ADJUDICATION.md` round 8 for gpt-v9…v14 | ⬜ P3 — after `ctest` is green |
@@ -164,14 +181,14 @@ Recording the reasons here so a future session does not "simplify" them again.
 
 ## 9. Stage sequence
 
-**Order (agreed 2026-09-22, D17).** Steps 1 and 2 are done; 3–6 remain.
+**Order (agreed 2026-09-22, D17).** Steps 1–4 are done; 5–6 remain.
 
 ```text
 1. Correct the deadline → Mon 2026-09-28            ✅ S2.5
 2. Finish the task backlog (§5, incl. T0.6)        ✅ S3
-3. Ratify the v3.0 contract change with W2 + the affected owners
-   (proposal text is already written: v3 §3.12 + task T0.6)
-4. Apply the v3.0 header/contract change          → S2 (bytes) = T0.6
+3. Ratify the v3.0 contract change with W2 + the affected owners   ✅ D18 (W2, 2026-09-22)
+   (the proposal text was v3 §3.12 + task T0.6; §10 below is the announcement still to send)
+4. Apply the v3.0 header/contract change          → S2 (bytes) = T0.6   ✅ `d6379df`
 5. Implement Phase 1                              → S6
 6. Verification, PPT, runbook, video              → S4 (P2) then S5 (P3)
 ```
@@ -183,7 +200,7 @@ unratified change is a teammate's broken build.
 
 | Priority | Work | Gate |
 | --- | --- | --- |
-| **P0** | Step 3–4: ratification, then T0.6 (contracts v3.0 + guard map + `CONTRACTS.md` + run configs + deletions) | `check_layers: OK (N files scanned)` with the expected new count, `ctest` green, every hash in the new table matching, CI green on 3 OSes |
+| **P0** | Steps 3–4: the §4.5 ratification, then T0.6 (contracts v3.0 + guard map + `CONTRACTS.md` + run configs + deletions) | ✅ **met locally 2026-09-22** — `check_layers: OK (22 files scanned)` (the predicted count), `ctest` 100% / 1 test, every hash in the new table matching. **The CI run on the push is the one part still unobserved** |
 | **P0** | Step 5: Phase 1 (T4.1–T4.3, T1.1–T1.3, T3.1, T2.1–T2.5) | the threaded scheduler's deterministic tests, then the real binary on Windows and Linux |
 | **P1** | Step 6: T3.4 Windows gate, T5.1–T5.3, T1.4/T3.3 measurements, T2.6 `README.txt` | **A1–A11** on the Windows build; measurement tables committed |
 | **P2** | S4: v3 §6–§10 (DoD, acceptance, runbook, risks) | runbook dry run against the frozen SHA-256 |
@@ -226,5 +243,30 @@ they read first.
 > accepting) and T0.6 (the seven steps). If you agree, reply and I will record it and land T0.6; if any part is
 > wrong, say which — nothing is applied before that.
 
-**On agreement:** record `D18 — contracts v3.0 ratified by W2 + W1/W3/W4` in §4 above, **then** execute T0.6.
-Until that line exists, no header file changes.
+**Done.** D18 is recorded in §4 above and T0.6 landed as `d6379df`; this proposal is kept as the record of what
+was asked and answered. **§11 is the part that still needs sending** (T0.6 Step 6).
+
+---
+
+## 11. Paste-ready T0.6 Step 6 announcement (send to the group)
+
+Step 6 is the one T0.6 step a human has to send; it is left unchecked in the plan for that reason. Text to paste:
+
+> **Contracts are now v3.0** — landed as `d6379df` on 2026-09-22. What it means for your next commit:
+>
+> **The header set is 13 → 11.** Added `include/csopesy/cli.hpp`. Deleted `config_io.hpp`, `glyphs.hpp` and
+> `frame_buffer.hpp`, along with their `.cpp` files, `test_config.cpp`, `test_glyphs.cpp` and
+> `config/csopesy.ini`.
+>
+> **Four contract removals — do not re-add one from memory:** `Parameters::asciiArt`, `Parameters::marqueeRow`,
+> `Parameters::measurePath`, and the injected `Clock` (use `term_.nowMs()` — it is the single clock source).
+> Two signature changes: `Renderer::drawFrame(FrameBuffer&, …)` became `Renderer::buildFrame(…) -> std::string`
+> (one complete frame, one `write()`), and `Parameters::setText` now returns
+> `TextResult{Ok, Empty, NonAscii}` instead of `bool`.
+>
+> **Unchanged:** the two threads, one mutex + one condition variable, the FSD layers and `check_layers.sh`, the
+> `CONTRACTS.md` freeze, and the 3-OS CI.
+>
+> **Before your first commit, run:** `cmake --preset debug && cmake --build --preset debug && ctest --preset debug`
+> (expect 1/1) and `bash scripts/check_layers.sh` (expect `OK (22 files scanned)`). If your build breaks on a
+> deleted header, you are reading v2.6 — `CONTRACTS.md`'s hash table is the authority on what is current.

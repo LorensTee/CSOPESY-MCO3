@@ -1,14 +1,16 @@
 # CSOPESY Marquee Operator — Implementation & Workload Plan (**v3**)
 
-**Status: COMPLETE except §5's gated task and S5.**
+**Status: COMPLETE — and v3.0 is APPLIED to the tree (T0.6 landed 2026-09-22).**
 Stages S1–S4 have landed: §0, §1, §2, §3.0, §3.1–§3.12 (the delta contract), §4 (workstreams + RACI),
-§5 (task backlog, incl. the gated **T0.6**) and **§6–§10** (definition of done + A1–A12, runbook, risks,
+§5 (task backlog, incl. **T0.6**) and **§6–§10** (definition of done + A1–A12, runbook, risks,
 the professor-answer record, self-review + revision log). **Read `docs/PLAN_V3_PROGRESS.md` first** — it says
 what is done, what is next, and what is blocked.
 
-**Nothing in this plan has been applied to the tree.** The headers on disk are still v2.6 and no header, source,
-config, test or run-config file has been touched: applying v3.0 is task **T0.6**, gated on the §4.5 ratification
-of the contract change (D17). §5.0's **D1 gate** is that ratification.
+**The headers on disk ARE v3.0.** T0.6 was ratified by W2 Byron under §4.5 and landed as commit **`d6379df`**:
+the header set went 13 → 11, `CONTRACTS.md`'s marker is **v3.0**, and the guard reports
+`check_layers: OK (22 files scanned)`. So §5.0's **D1 gate** — the ratification — is satisfied and recorded as
+**D18**; everything below describes the tree as it now stands, and the next work is **Phase 1** (step 5 of
+`PLAN_V3_PROGRESS.md` §9), not any more migration.
 
 **Version:** v3.0-draft · **Established:** 2026-09-22 · **Deadline:** Monday **2026-09-28** (revised from
 2026-09-23 on 2026-09-22 — D17, `PLAN_V3_PROGRESS.md` §6) · **Supersedes:** `docs/IMPLEMENTATION_PLAN_v2.md`
@@ -852,23 +854,33 @@ stub, and the `unit` target reports `OK 0 tests` on purpose.
 `CONTRACTS.md`, `.idea/runConfigurations/*.xml`, `config/csopesy.ini` (deleted), `CMakeLists.txt`'s source and
 test lists, and the doc-comment references in `src/**` that name the old tasks.
 
-- [ ] **Step 1 — propose (no file may change yet).** Post v3 §3.5/§3.6/§3.8/§3.9 plus §3.12's file list to W2 and
-the affected owners, using §4.5's table above as the per-owner summary. Ask for agreement **or objection**.
-- [ ] **Step 2 — record the agreement.** When W2 agrees, add one dated line to `PLAN_V3_PROGRESS.md` §4
-(`D18 — contracts v3.0 ratified by W2 + W1/W3/W4`). **No header edit may precede that line.**
-- [ ] **Step 3 — apply, in §3.12's order:** headers → `layer_of_header()` map → `CONTRACTS.md` marker + the
-regenerated `git hash-object` table → both run configs' `PROGRAM_PARAMS` cleared and `config/csopesy.ini`
-deleted → the six source/test deletions → the CMake target lists.
-- [ ] **Step 4 — verify the guard count moved as predicted.** `bash scripts/check_layers.sh` must print
-**`OK (22 files scanned)`**: 26 today, minus 3 deleted headers, minus 3 deleted `.cpp`, plus `cli.hpp`, plus
-`cli.cpp`. A different number means a file was missed on either side.
-- [ ] **Step 5 — verify the build and the freeze.** `cmake --preset debug && cmake --build --preset debug &&
-ctest --preset debug` passes; every hash in the new table matches `git hash-object include/csopesy/*.hpp`; CI is
-green on all three OSes.
-- [ ] **Step 6 — announce.** Group message stating the marker is v3.0, the three deleted headers, and the four
-contract removals (`asciiArt`, `marqueeRow`, `measurePath`, `Clock`) — so nobody re-adds one from memory.
-- [ ] **Step 7 — commit** `chore(contracts)!: v3.0 — no config layer, plain-text band, CLI-only flags (R3, R7, R8)`
-  **Evidence to record:** the guard's count line, the `ctest` summary, the hash check, and the CI run URL.
+- [x] **Step 1 — propose (no file may change yet).** Sent to W2 and the affected owners as §10's paste-ready
+text. **W2 Byron agreed 2026-09-22.**
+- [x] **Step 2 — record the agreement.** Recorded as **D18** in `PLAN_V3_PROGRESS.md` §4, with its provenance gap
+stated there (W3's and W4's individual acknowledgment is not in-repo).
+- [x] **Step 3 — apply, in §3.12's order.** Headers → `layer_of_header()` map → `CONTRACTS.md` marker + the
+regenerated `git hash-object` table → both run configs' `PROGRAM_PARAMS` cleared and `config/csopesy.ini` deleted
+→ the six source/test deletions → the CMake target lists.
+- [x] **Step 4 — the guard count moved exactly as predicted: `check_layers: OK (22 files scanned)`.**
+26 − 3 deleted headers − 3 deleted `.cpp` + `cli.hpp` + `cli.cpp` = 22, re-run on the finished tree
+2026-09-22. A different number would have meant a file was missed on either side.
+- [x] **Step 5 — build and freeze verified locally.** `cmake --preset debug` → `cmake --build --preset debug` →
+`ctest --preset debug` reports *100% tests passed, 0 tests failed out of 1 (unit)*. **11/11** hashes match
+`git hash-object include/csopesy/*.hpp`, and the **7 headers nobody needed to touch still carry their exact
+v2.6 blob hashes** — checkable evidence that this is the delta claimed. **The CI half is unobserved** until the
+push (see *still open* below).
+- [ ] **Step 6 — announce. NOT DONE: this one is the operator's to send.** The group message stating the marker
+is v3.0, the three deleted headers, and the four contract removals (`asciiArt`, `marqueeRow`, `measurePath`,
+`Clock`) — so nobody re-adds one from memory. Paste-ready text: `PLAN_V3_PROGRESS.md` §10.
+- [x] **Step 7 — committed** as **`d6379df`**
+`chore(contracts)!: v3.0 — no config layer, plain-text band, CLI-only flags (R3, R7, R8)` (30 files, the preset
+export deliberately kept out of it as `cc74d5d`).
+  **Evidence recorded:** the guard's count line, the `ctest` summary, the hash check.
+
+> **Still open from T0.6 — two items, neither blocks Phase 1.** (a) **Step 6's group announcement**: a human
+action, and its text is ready in `PLAN_V3_PROGRESS.md` §10. (b) **The CI run on all three OSes**: it requires
+pushing `d6379df`, since CI is triggered by the push rather than by the commit. Local verification is green; CI
+is simply unobserved until then, and `AGENTS.md` §8 item 2 stays open until it is.
 
 ### Phase 1A — W4 (Kim): the plain-text marquee (pure logic, no platform)
 
@@ -1127,9 +1139,12 @@ the deadline is 2026-09-28.
 
 `grep -n 'TBD\|TODO\|FIXME\|XXX'` on this document returns **two** hits, both factual statements that
 `src/*.cpp` is still `TODO` stubs — not placeholders. There are no `TBD`, no `FIXME` and no orphan
-cross-references. The **seven unchecked `- [ ]` boxes are all T0.6's steps**, and they are unchecked *on
-purpose*: they are the gated work this plan explicitly has not done (D17). Every other task in §5 is written as
-work to perform, not as a step to tick off in this file.
+cross-references. **T0.6's seven boxes are all checked except Step 6** — the ratification, the header change, the
+predicted guard count, the build/freeze verification and the commit each carry their evidence inline at §T0.6 and
+in `PLAN_V3_PROGRESS.md` §4/§7. Step 6 (the group announcement) and the CI run are the two items left open on
+purpose: both need a human or a push, neither blocks Phase 1, and the paste-ready announcement is in
+`PLAN_V3_PROGRESS.md` §10. Every other task in §5 is written as work to perform, not as a step to tick off in
+this file.
 
 ### 10.3 Name/type consistency check
 
@@ -1212,5 +1227,5 @@ code. Until it lands, this table is the disposition of record.
 | **S2.5** | Deadline corrected to **2026-09-28**; D17 recorded (no header change ahead of ratification) | ✅ |
 | **S3** | §4 (workstreams + RACI) + §5 (task backlog, T0.6, the Sep-28 schedule) | ✅ |
 | **S4** | §6 (DoD + A1–A12), §7 (runbook), §8 (risks), §9 (the answers recorded), §10 (self-review + the revision log). `gpt-v14` absorbed | ✅ this document |
-| **S2 (bytes)** | The header edits, the guard map, `CONTRACTS.md` v3.0, the run configs, `config/` — per §3.12 / **T0.6** | ⬜ **waiting on the §4.5 ratification (D17)** — the only thing standing between this plan and implementation |
+| **S2 (bytes)** | The header edits, the guard map, `CONTRACTS.md` v3.0, the run configs, `config/` — per §3.12 / **T0.6** | ✅ **landed 2026-09-22 as `d6379df`** (30 files). Header set 13 → 11; guard `OK (22 files scanned)`; `ctest` 1/1; 11/11 hashes match. T0.6 Steps 6 (announce) and the CI run are the only parts still open |
 | **S5** | `AGENTS.md` (§2 commands, §5 clock + threading invariants, §7 behaviour contracts), v2's superseded banner, `REVIEW_ADJUDICATION.md` round 8 for `gpt-v9`…`gpt-v14` | ⬜ P3 — after `ctest` is green |
