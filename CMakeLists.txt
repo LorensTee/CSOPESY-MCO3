@@ -21,11 +21,10 @@ find_package(Threads REQUIRED)
 
 set(CORE_SOURCES
   src/app/console_app.cpp src/app/scheduler.cpp
-  src/features/marquee/renderer.cpp src/features/marquee/glyphs.cpp
+  src/features/marquee/renderer.cpp
   src/features/commands/interpreter.cpp src/features/commands/line_editor.cpp
-  src/entities/parameters.cpp src/entities/config_io.cpp
-  src/entities/process.cpp
-  src/shared/terminal/frame_buffer.cpp)
+  src/entities/parameters.cpp src/entities/cli.cpp
+  src/entities/process.cpp)
 
 if(WIN32)
   list(APPEND CORE_SOURCES src/platform/terminal_win32.cpp)
@@ -42,8 +41,8 @@ target_link_libraries(csopesy PRIVATE csopesy_core)
 
 enable_testing()
 add_executable(csopesy_tests
-  tests/support/check.cpp tests/unit/test_glyphs.cpp tests/unit/test_scroll.cpp
-  tests/unit/test_parameters.cpp tests/unit/test_config.cpp tests/unit/test_interpreter.cpp
+  tests/support/check.cpp tests/unit/test_scroll.cpp
+  tests/unit/test_parameters.cpp tests/unit/test_interpreter.cpp
   tests/unit/test_scheduler.cpp tests/unit/test_renderer.cpp)
 target_include_directories(csopesy_tests PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/tests/support)
 target_link_libraries(csopesy_tests PRIVATE csopesy_core)

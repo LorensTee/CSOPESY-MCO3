@@ -4,6 +4,14 @@ This file is the **evidence that the graded run configuration is real** (§2.4).
 owners running the T0.5 Step 5 gate on their own hardware — the gate is a hand-run checklist because no
 unit test can observe raw-mode restoration, a live resize, or a console that isn't a terminal (§5.0, §6.1).
 
+> **v3.0 update (T0.6, 2026-09-22).** The config layer is gone (D1), so both configurations now pass **no**
+> program arguments and `config/csopesy.ini` no longer exists. The `--diag` check below is replaced by watching
+> the program start (a Windows VT-enable failure is now a loud startup error, D5). And the live gate this file
+> records is now **T3.4, not T0.5** — no part of it could be observed before features existed, so v3 moved it
+> behind them (`gpt-v12`; plan §5). The rows below stay until someone fills them there.
+> For the PPT's refresh/polling sweep, a *measurement take* sets `--poll-ms=N --refresh-ms=M` in the run
+> configuration and presses Run again — never a rebuild (D14, plan §1.2).
+
 ## The two committed configurations
 
 Both live in `.idea/runConfigurations/` and are **tracked**, so run arguments cannot drift across the four
@@ -14,7 +22,7 @@ machines.
 | Type | CMake Application | Custom Build Application (see caveat below) |
 | Executable / target | CMake target `csopesy` | `$PROJECT_DIR$/frozen/csopesy.exe` |
 | Working dir | `$ProjectFileDir$` | `$ProjectFileDir$` |
-| Program arguments | `--config=config/csopesy.ini` | `--config=config/csopesy.ini` |
+| Program arguments | *(none)* | *(none)* — a graded take sets nothing; a measurement take sets `--poll-ms=N --refresh-ms=M` (D14) |
 | Before-launch `Build` | **present** (it is the dev config; Run may rebuild) | **absent** — nothing is built at Run time |
 | Used for | developing, and the Step 5 terminal gate | the recorded/graded run |
 
@@ -41,7 +49,7 @@ Using **`csopesy-dev`**, press Run/Debug and confirm:
 | --- | --- | --- | --- |
 | (a) ANSI renders as layout, not literal escape codes | *to fill* | *to fill* | *to fill* |
 | (b) `start_marquee` animates **while** the prompt accepts typing | *to fill* | *to fill* | *to fill* |
-| (c) `--diag` reports `isTty=true` (POSIX) / VT enabled (Windows) | *to fill* | *to fill* | *to fill* |
+| (c) The program animates while accepting typing — i.e. raw mode is on and VT output works. (v3.0 removed `--diag`; on Windows a VT-enable failure is a **loud startup error**, D5) | *to fill* | *to fill* | *to fill* |
 | (d) window resize mid-animation repaints cleanly | *to fill* | *to fill* | *to fill* |
 | Terminal switch chosen | *to fill* | *to fill* | *to fill* |
 | CLion version / toolchain | *to fill* | *to fill* | *to fill* |

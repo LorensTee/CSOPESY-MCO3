@@ -1,6 +1,9 @@
-// src/entities/parameters.cpp — one struct, layered precedence, clamping that never throws (§3.5, §T2.1).
-// TODO(T2.1): setRefresh/setPolling clamp into [min, max] and report; setText trims, and returns false
-// (state unchanged) when the result is empty; defaults() is the §3.6 built-in layer.
+// src/entities/parameters.cpp — clamping that never throws, plus the ASCII text contract (§3.5, §T2.1).
+//
+// TODO(T2.1): setRefresh/setPolling clamp into [min, max] and fill in the ClampReport; setText trims, keeps
+// internal space runs verbatim, and returns Empty or NonAscii with the state UNCHANGED — it never normalizes
+// (D15), because mangling the operator's text would be worse than refusing it.
+// TODO(T2.1): defaults() is the built-in layer of the three-layer precedence defaults -> CLI -> command (§3.6).
 #include "csopesy/parameters.hpp"
 
 namespace csopesy {
@@ -15,14 +18,14 @@ ClampReport Parameters::setPolling(int) {
   return {};
 }
 
-bool Parameters::setText(const std::string&) {
-  // TODO(T2.1): trim; internal whitespace runs are preserved verbatim (§3.7 rule 4).
-  return false;
+TextResult Parameters::setText(const std::string&) {
+  // TODO(T2.1): trim; empty -> Empty; any byte outside [0x20, 0x7E] -> NonAscii; else assign and return Ok.
+  // The ASCII rule is what makes "one byte == one column" true for the renderer (§3.5, §3.7 rule 7).
+  return TextResult::Empty;
 }
 
 Parameters Parameters::defaults() {
-  // Default member initializers already are the built-in layer (§3.5), so this is correct as written.
-  // TODO(T2.1): keep this in sync if a default ever moves to the config layer.
+  // The default member initializers ARE the built-in layer (§3.5), so this is correct as written.
   return {};
 }
 

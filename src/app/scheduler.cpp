@@ -1,17 +1,16 @@
-// src/app/scheduler.cpp — the marquee worker + the input-thread API (§3.8).
-// TODO(T1.3): the two-thread model (one mutex, one condition variable, one owner per resource) and the
-// three lock rules — tick() is never called holding mu_, every blocking I/O call happens outside mu_,
-// and Terminal::size() is read before the lock.
-#include <utility>
-
+// src/app/scheduler.cpp — the marquee worker + the input-thread API (v3.0 §3.8).
+//
+// TODO(T1.3): the two-thread model (one mutex, one condition variable, one owner per resource) and the three
+// lock rules — tick() is never called holding mu_, every blocking I/O call happens outside mu_, and
+// Terminal::size() is read before the lock. Deadlines come from term_.nowMs() (D7), and the worker publishes
+// the frame as ONE string from Renderer::buildFrame through ONE term_.write() (D6).
 #include "csopesy/scheduler.hpp"
 
 namespace csopesy {
 
 Scheduler::Scheduler(Terminal& term, Parameters& params, Renderer& renderer, Interpreter& interp,
-                     MarqueeProcess& proc, Clock clock)
-    : term_(term), params_(params), renderer_(renderer), interp_(interp), proc_(proc),
-      now_(std::move(clock)) {}
+                     MarqueeProcess& proc)
+    : term_(term), params_(params), renderer_(renderer), interp_(interp), proc_(proc) {}
 
 Scheduler::~Scheduler() {
   requestStop();
@@ -19,7 +18,7 @@ Scheduler::~Scheduler() {
 }
 
 // --- input/command thread -------------------------------------------------------------------------
-void Scheduler::postEvent(const KeyEvent&) { /* TODO(T1.3): feed + dirty_ + notify */ }
+void Scheduler::postEvent(const KeyEvent&) { /* TODO(T1.3): feed the interpreter + dirty_ = true + notify */ }
 
 void Scheduler::wake() { /* TODO(T1.3): bump wakeTick_ + notify */ }
 
@@ -38,7 +37,7 @@ int Scheduler::run() {
 }
 
 TickResult Scheduler::tick(const KeyEvent*) {
-  // TODO(T1.3): pure step — assemble the frame under mu_, write it outside mu_.
+  // TODO(T1.3): build the frame under mu_, then write that ONE string outside mu_ (§3.9).
   return {};
 }
 
@@ -48,15 +47,11 @@ int Scheduler::pollTimeoutMs() const {
 }
 
 SchedulerSnapshot Scheduler::snapshot() const {
-  // TODO(T1.3): lock mu_ and copy the sanctioned cross-thread view.
+  // TODO(T1.3): lock mu_ and copy the sanctioned cross-thread view. `now` comes from term_.nowMs() (D7).
   return {};
 }
 
 // --- private --------------------------------------------------------------------------------------
 int Scheduler::pollTimeoutMsLocked() const { return 1; }   // TODO(T1.3)
-
-void Scheduler::noteEventLocked(long long) { /* TODO(T1.3): keep the OLDEST unconsumed stamp */ }
-
-void Scheduler::appendMeasure(const std::string&) { /* TODO(T1.3): append outside mu_, lazily open */ }
 
 }  // namespace csopesy

@@ -26,9 +26,9 @@ report() {
 # include/csopesy/<name> -> layer
 layer_of_header() {
   case "$1" in
-  keys.hpp | terminal.hpp | shutdown.hpp | frame_buffer.hpp) echo "shared" ;;
-  parameters.hpp | config_io.hpp | process.hpp) echo "entities" ;;
-  glyphs.hpp | renderer.hpp) echo "features:marquee" ;;
+  keys.hpp | terminal.hpp | shutdown.hpp) echo "shared" ;;
+  parameters.hpp | cli.hpp | process.hpp) echo "entities" ;;
+  renderer.hpp) echo "features:marquee" ;;
   line_editor.hpp | interpreter.hpp) echo "features:commands" ;;
   scheduler.hpp | console_app.hpp) echo "app" ;;
   *) echo "unknown" ;;

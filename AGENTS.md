@@ -10,7 +10,13 @@ and a marquee worker, one `std::mutex`, one `std::condition_variable`.
 partial — `CMakePresets.json` and both CLion run configurations are committed, but the CLion-side gate and its
 records are not (see the Phase 0 status block in the plan). `include/csopesy/*.hpp` are frozen contracts;
 `src/**` is still `TODO` stubs. Do not assume a task is done because the file exists — check
-`docs/IMPLEMENTATION_PLAN_v2.md` §5 for the phase it belongs to.
+`docs/IMPLEMENTATION_PLAN_v3.md` §5 for the phase it belongs to.
+
+**Contracts v3.0 landed 2026-09-22 (task T0.6, ratified by W2 per §4.5).** The tree now matches the v3 plan:
+no config layer, a plain-text (ASCII) marquee, no `marquee_row`, no `--diag`, no `--measure`, no `FrameBuffer`
+diffing, and no injected `Clock` — while keeping the professor-mandated two threads, the FSD layers, the
+contract freeze and the 3-OS CI matrix. `CONTRACTS.md` is the v3.0 marker. Read
+`docs/PLAN_V3_PROGRESS.md` for the decision list (D1–D18) and the current state.
 
 **v3 plan in progress (added 2026-09-22).** `docs/IMPLEMENTATION_PLAN_v3.md` simplifies the plan after the
 professor's answers: no `.ini`/config layer, a plain-text (ASCII) marquee instead of the 5×5 glyph engine, no
@@ -24,7 +30,7 @@ read `docs/PLAN_V3_PROGRESS.md` for the current state, the decision list (D1–D
 
 | Question | Answer |
 | --- | --- |
-| How should this be built? | `docs/IMPLEMENTATION_PLAN_v2.md` — the authoritative plan (v1 is gone; do not implement from it) |
+| How should this be built? | `docs/IMPLEMENTATION_PLAN_v3.md` — the authoritative plan (contracts v3.0). `IMPLEMENTATION_PLAN_v2.md` is **frozen history**: v3 §3 quotes its §3.3/§3.8/§3.10/§3.11 normatively and must not be edited |
 | What is the interface? | `CONTRACTS.md` + `include/csopesy/*.hpp` — **frozen** |
 | Why is it like this? | `docs/REVIEW_ADJUDICATION.md` — every accepted/rejected review point, with reasons |
 | What is graded? | plan §1 (spec decode) and §6 (definition of done, acceptance cases A1–A10) |
@@ -92,9 +98,10 @@ contract change; re-running a tool is not an exemption.
   Do not add another production synchronization layer. Test doubles (`FakeTerminal`) deliberately carry their
   own mutex/condition variables so the threaded tests can be deterministic — that is expected and is not the
   production coordination layer. No syscall inside the critical section: `Terminal::size()` is read *before*
-  taking the lock; `--measure` appends happen *after* releasing it.
-- `Terminal::nowMs()` is the **only** clock source, injected into `Scheduler`. Do not call `std::chrono`
-  directly in scheduler logic.
+  taking the lock, and the whole frame is built as one string **before** the lock is dropped so the single
+  `Terminal::write()` happens *after* releasing it.
+- `Terminal::nowMs()` is the **only** clock source — `Scheduler` calls `term_.nowMs()`. (v3.0 removed the
+  injected `Clock` functor, D7.) Do not call `std::chrono` directly in scheduler logic.
 - `Interpreter::quit_` is read and written by the **input thread only**; the worker stops via `stop_` +
   condition variable.
 - **No `sleep_for` / `sleep_until` in concurrency tests.** They must be deterministic (barrier-synchronized,
@@ -123,21 +130,23 @@ contract change; re-running a tool is not an exemption.
   trim the argument's outer whitespace but preserve internal runs verbatim; `set_speed`'s argument must match
   `[-+]?[0-9]+` in full (so `5abc` is a `Usage:` error, never a silent partial parse via `std::stoi`); a
   well-formed out-of-range value (including `-5`) is **clamped and reported**, not a usage error.
-- **Precedence** is defaults → `config/csopesy.ini` → CLI flags. Bad input **warns and keeps going**; a missing
-  config file is never fatal (a typo must not cost the quiz).
-- **`config/csopesy.ini` is the single live path.** Quiz cases (`config/quiz_case_<n>.ini`) are inputs copied
-  *over* `config/csopesy.ini`; nothing loads them directly, and the graded run config passes
-  `--config=config/csopesy.ini` literally.
+- **Precedence** is defaults → CLI flags → runtime commands (three layers since v3.0; the config-file layer is
+  gone, D1). Bad input **warns and keeps going** — a typo must not cost the quiz.
+- **There is no config file.** `config/csopesy.ini` and `config/quiz_case_<n>.ini` no longer exist and the
+  graded run config passes **no** program arguments; the parameter surface is the six commands plus three flags
+  (`--no-tty` dev/CI-only, `--refresh-ms=N`, `--poll-ms=N`).
 - `--no-tty` means plain line mode: no raw mode, no ANSI, no animation, **no worker thread** — it is what makes
-  the real-binary smoke test portable across the three CI OS images.
-- `--diag` is the only diagnostic flag (one-shot report to stderr, exit 0); `--measure=FILE` has two distinct
-  line kinds with an explicit coalescing rule — read plan §3.6 before touching it.
+  the real-binary smoke test portable across the three CI OS images. **Dev/CI only** (D13): never the graded run.
+- **`--diag` and `--measure` are gone (v3.0).** A Windows VT-enable failure is now a **loud startup error**
+  instead of a reported field (D5), and the PPT's refresh/polling numbers come from a documented **manual
+  sweep on the frozen binary** — change the run config's arguments and press Run again, never rebuild (D14).
 
 ## 8. Definition of done
 
 1. The task's test **failed before** the change and passes after (`ctest` output pasted into the PR).
-   Sole carve-out: the **platform-surface tasks** (T1.1 termios, T3.1 Win32 console modes, T0.5 CLion terminal
-   gate) — no unit test can observe raw-mode restoration or a live resize; do the hand-run checklist on the
+   Sole carve-out: the **platform-surface tasks** (T1.1 termios, T3.1 Win32 console modes, T3.4 CLion terminal
+   gate — which absorbed T0.5's live gate) — no unit test can observe raw-mode restoration or a live resize; do
+   the hand-run checklist on the
    owner's hardware and record the result. Do not invent a test-shaped ritual to satisfy the wording.
 2. CI green on all three OS families.
 3. No frozen header changed without §4.5.
