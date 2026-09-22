@@ -42,7 +42,7 @@ target_link_libraries(csopesy PRIVATE csopesy_core)
 enable_testing()
 add_executable(csopesy_tests
   tests/support/check.cpp tests/unit/test_scroll.cpp
-  tests/unit/test_parameters.cpp tests/unit/test_interpreter.cpp
+  tests/unit/test_process.cpp tests/unit/test_parameters.cpp tests/unit/test_interpreter.cpp
   tests/unit/test_scheduler.cpp tests/unit/test_renderer.cpp)
 target_include_directories(csopesy_tests PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/tests/support)
 target_link_libraries(csopesy_tests PRIVATE csopesy_core)

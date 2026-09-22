@@ -1,18 +1,25 @@
 // src/entities/process.cpp — the PCB (§T1.2).
-// TODO(T1.2): start() returns false when already Running and clears hasRendered; stop() returns false when
-// already Stopped. hasRendered == false makes the next tick draw immediately.
+// hasRendered == false makes the next tick draw immediately; clearing it here is what makes a restarted
+// marquee repaint on its first tick instead of waiting out a stale deadline.
 #include "csopesy/process.hpp"
 
 namespace csopesy {
 
 bool MarqueeProcess::start() {
-  // TODO(T1.2)
-  return false;
+  if (state == ProcessState::Running) {
+    return false;
+  }
+  state = ProcessState::Running;
+  hasRendered = false;
+  return true;
 }
 
 bool MarqueeProcess::stop() {
-  // TODO(T1.2)
-  return false;
+  if (state == ProcessState::Stopped) {
+    return false;
+  }
+  state = ProcessState::Stopped;
+  return true;
 }
 
 }  // namespace csopesy
