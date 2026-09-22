@@ -158,7 +158,7 @@ std::unique_ptr<Terminal> Terminal::create() { return std::make_unique<PosixTerm
 void installShutdownHandlers() {
   struct sigaction action {};
   action.sa_handler = &onShutdownSignal;
-  ::sigemptyset(&action.sa_mask);
+  sigemptyset(&action.sa_mask);   // no `::`: this is a macro on macOS, so qualifying it does not compile
   action.sa_flags = 0;   // no SA_RESTART: poll() must return EINTR so the flag is seen without waiting a tick
   ::sigaction(SIGINT, &action, nullptr);
   ::sigaction(SIGTERM, &action, nullptr);
