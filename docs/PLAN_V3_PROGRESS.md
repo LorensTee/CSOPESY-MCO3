@@ -8,7 +8,7 @@ intended — **update both in the same session**.
 **Rule for this file:** update it at the **end of every working session**, before you stop. A session that
 changes nothing still gets a dated line in §7. Never mark a stage done without the artifact it produced.
 
-**Established:** 2026-09-22 · **Last updated:** 2026-09-22 (**T0.6 landed — contracts are v3.0**)
+**Established:** 2026-09-22 · **Last updated:** 2026-09-22 (**T0.6 fully closed — announcement sent; Phase 1 started: T1.1 landed**)
 **Deadline: Monday 2026-09-28** (revised from 2026-09-23 — six days, not one). **The §4.5 change-control protocol
 is honored in full: no header change lands ahead of ratification.** Stage sequence in §9.
 
@@ -19,10 +19,10 @@ is honored in full: no header change lands ahead of ratification.** Stage sequen
 | | |
 | --- | --- |
 | **Deadline** | **Monday 2026-09-28** (revised from 2026-09-23 on 2026-09-22 — operator-stated; see §6 provenance). Six days. Urgency removed, so **D17** applies: no workaround for §4.5. |
-| **Current stage** | **T0.6 — DONE. The migration is over; Phase 1 is the next work.** Contracts are **v3.0** on disk, committed as **`d6379df`** (2026-09-22): the guard prints `check_layers: OK (22 files scanned)`, `ctest` is green (1/1), and **11/11** hashes match `CONTRACTS.md`. |
-| **Next action** | **Start Phase 1** (§9 step 5). W4's `T4.1`–`T4.3`, W1's `T1.1`–`T1.3` and W3's `T3.1` can now all begin: nothing they need is blocked any more. **`T1.3` (the threaded scheduler) is the critical path.** Task bodies and ids are in `IMPLEMENTATION_PLAN_v3.md` §5 — task ids keep their v2 numbers, and §3.8's delta list is what applies to the scheduler. |
-| **One open item from T0.6 — does not block Phase 1** | **T0.6 Step 6's group announcement**, which is a human action and is left unchecked for exactly that reason; **the paste-ready text is §11 below**. **The CI half is now closed:** run [35724109198](https://github.com/LorensTee/CSOPESY-MCO3/actions/runs/35724109198) is green on all three OSes (ubuntu 17 s, macOS 26 s, Windows 45 s), so `AGENTS.md` §8 item 2 is satisfied. |
-| **Blocked on** | **Nothing.** The §4.5 gate is satisfied and recorded as **D18** (W2 Byron, the freeze owner, 2026-09-22). If W3 or W4 objects to the change, `d6379df` is one revertable commit and every `src/*.cpp` is still a `TODO` stub, so nothing consumes it yet. |
+| **Current stage** | **T0.6 — DONE and fully closed. Phase 1 has started.** Contracts are **v3.0**, committed as **`d6379df`** (2026-09-22; guard `OK (22 files scanned)`, `ctest` 1/1, **11/11** hashes match). **T1.1 (`src/platform/terminal_posix.cpp`, `PosixTerminal`) is implemented and pty-verified**; the remaining Phase 1 tasks are still `TODO` stubs. |
+| **Next action** | **Keep going in Phase 1** (§9 step 5). W1: `T1.2` (PCB) → **`T1.3` (the threaded scheduler) — the critical path**; `T1.1` is done. W2's `T2.1`/`T2.2`, W3's `T3.1` and W4's `T4.1`–`T4.3` are unblocked. Task bodies and ids are in `IMPLEMENTATION_PLAN_v3.md` §5 — ids keep their v2 numbers, and §3.8's delta list is what applies to the scheduler. |
+| **T0.6 Step 6 — CLOSED** | **The group announcement (§11) was sent** — operator-stated 2026-09-22 (a human action, recorded here rather than as an in-repo artifact). Together with the green CI run [35724109198](https://github.com/LorensTee/CSOPESY-MCO3/actions/runs/35724109198) on all three OSes (ubuntu 17 s, macOS 26 s, Windows 45 s), **every T0.6 step is now closed** and `AGENTS.md` §8 item 2 is satisfied. |
+| **Blocked on** | **Nothing.** The §4.5 gate is satisfied and recorded as **D18** (W2 Byron, the freeze owner, 2026-09-22). If W3 or W4 objects to the change, `d6379df` is one revertable commit; when it landed every `src/*.cpp` was still a `TODO` stub, so nothing consumed it yet (T1.1 is the first consumer, 2026-09-22). |
 | **Do not do** | Do **not** perform v2's T0.5 manual checklist (CLion GUI, terminal gate, `--diag` sanity check). `gpt-v12.md` is right: its steps reference `--config=config/csopesy.ini`, which v3 deleted, and the surviving audit moved to **T3.4** — a hand-run checklist that needs features to observe. |
 | **Then** | S6 (implement Phase 1) → S5 (`AGENTS.md` follow-ups, the v2 superseded banner, adjudication round 8). The full sequence is §9. |
 
@@ -98,7 +98,7 @@ Recording the reasons here so a future session does not "simplify" them again.
   **loads** it (a hand check on a real CLion, moved to Phase 2).
 - **`config/quiz_case_<n>.ini` never existed in the repo** — the convention lived only in v2 §3.6/§7. Removing
   it costs no files, only prose.
-- **`src/**` is still all `TODO` stubs** (230 lines total; headers are 303 lines). This is the cheapest possible
+- **`src/**` was all `TODO` stubs at this point** (230 lines; headers 303 lines) — T1.1 replaced `terminal_posix.cpp`'s stub on 2026-09-22 (§7). This was the cheapest possible
   moment to change the frozen contracts — nothing depends on them yet. This is the strongest argument for
   doing v3 **now** rather than trimming v2.6 in place.
 - **Provenance gap, open:** the professor's five answers exist in this repo only as `gpt-v11.md`'s paraphrase.
@@ -134,7 +134,7 @@ Recording the reasons here so a future session does not "simplify" them again.
   exactly how a requirement gets quietly dropped later.
 - **The v3 plan is now self-sufficient for implementation.** §0–§10 are complete: no "TBD" anywhere. After
   T0.6 (below) the only unchecked box left in `IMPLEMENTATION_PLAN_v3.md` is T0.6 **Step 6**, which a human must
-  send. Unchanged task *bodies* still live in v2 and are named normative in place (v3 §10.4 deviation 2), so
+  send — **it was sent on 2026-09-22 (§11), so T0.6 is now fully closed.** Unchanged task *bodies* still live in v2 and are named normative in place (v3 §10.4 deviation 2), so
   nobody has to guess which document to read for `T1.1`, `T2.5`, `T3.1`, `T3.4` or `T0.1`–`T0.5b`.
 - **The predicted guard count was confirmed, not adjusted.** v3 §10.3 predicted `OK (22 files scanned)` for T0.6
   **before** the change was made (26 − 3 headers − 3 `.cpp` + `cli.hpp` + `cli.cpp`), and the finished tree prints
@@ -163,6 +163,7 @@ Recording the reasons here so a future session does not "simplify" them again.
 | 2026-09-22 | **S4** | `gpt-v14` absorbed. Wrote `IMPLEMENTATION_PLAN_v3.md` §6 (DoD + **A1–A12**, incl. the new tiny-terminal and plain-line cases and the six-command mapping), §7 (runbook: no case file, no `--diag`, Windows-first, all six commands legitimate, no-rebuild pre-flight), §8 (24 live risks + 6 closed with reasons + new 29/30), §9 (the five answers recorded, with the two provenance gaps), §10 (self-review, name-consistency check, the v2.6→v3.0 revision log, review dispositions). Fixed D10's "four required commands" wording — the handout requires **six**. | `IMPLEMENTATION_PLAN_v3.md`, `PLAN_V3_PROGRESS.md` |
 | 2026-09-22 | **S4.1** | Fixed the **last** ASCII contradiction: `IMPLEMENTATION_PLAN_v3.md` §1.4 still said §3.7 *"normalizes non-printable and non-ASCII bytes"*, which contradicted D15 (*rejects*). Caught by `gpt-v15`; now reads *rejects*. Then committed the three documentation changes as **`f2e2147`** (`docs(plan): v3 plan — plain-text marquee, CLI-only parameters, Sep-28 deadline`) and verified the working tree is clean. **No header, source, config, test or run-config file is touched by that commit.** | `AGENTS.md`, `IMPLEMENTATION_PLAN_v3.md`, `PLAN_V3_PROGRESS.md` |
 | 2026-09-22 | **S2 (bytes) = T0.6** | **W2 Byron (the §4.5 freeze owner) ratified the v3.0 contract change**, so T0.6's seven steps were executed in §3.12's order: 4 header rewrites + `cli.hpp`, 3 header deletions, the guard's `layer_of_header()` map, `CONTRACTS.md`'s v3.0 marker + regenerated hash table, both run configs' `PROGRAM_PARAMS` cleared, `config/csopesy.ini` deleted, the 6 source/test deletions, both CMake target lists, and the stub doc-comments that named the deleted work. Verified: guard `check_layers: OK (22 files scanned)` — the prediction in v3 §10.3, made before the change, **confirmed exactly**; `ctest` 1/1; **11/11** hashes matching, with the 7 untouched headers still on their v2.6 blobs. Landed as **`d6379df`** (30 files) and pushed, with the `compile_commands.json` preset export deliberately kept out as **`cc74d5d`**. Recorded as **D18**. **CI is green on all three OSes** (ubuntu 17 s, macOS 26 s, Windows 45 s) in [run 35724109198](https://github.com/LorensTee/CSOPESY-MCO3/actions/runs/35724109198), so `AGENTS.md` §8 item 2 is satisfied. **Still open: T0.6 Step 6 only — the group announcement (§11).** | `include/csopesy/*.hpp`, `scripts/check_layers.sh`, `CONTRACTS.md`, `CMakeLists.txt`, `.idea/runConfigurations/*.xml`, `src/**`, `tests/unit/**`, `AGENTS.md`, `IMPLEMENTATION_PLAN_v3.md`, `clion-run-config.md` |
+| 2026-09-22 | **S6 / P1 — T1.1** | **Comment-quality cleanup pass** over the non-frozen files (`src/**`, `tests/**`, `scripts/check_layers.sh`, `ci.yml`): removed plan/review-history narration, D-number tags and long block comments, kept every `TODO(task)` marker and every real invariant; added **`AGENTS.md` §9 (Comment style)** and corrected §4's stale `(v2.6, 2026-09-16)` freeze marker to v3.0. Proved comment-only by a strip-and-compare pass over every changed source file, plus `ctest` 1/1 and `check_layers: OK (22 files scanned)`; **no frozen header touched** (11/11 hashes still match `CONTRACTS.md`). Then **T1.1 `PosixTerminal`**: raw mode (`ICANON`/`ECHO`/`ISIG`/`OPOST`/`ICRNL` cleared, `VMIN=VTIME=0`), idempotent `restore()`, live `TIOCGWINSZ` sizing with the 24x80 fallback, poll-based `readEvent` (CSI+SS3 arrows, bare-Esc 5 ms deadline, Enter/Backspace/Tab/Char, Ctrl+C and Ctrl+D → `Eof`), CRLF-preserving `write()`, `flush()`, `isTty()`, monotonic `nowMs()`, and flag-only SIGINT/SIGTERM handlers with no `SA_RESTART`. **33/33 pty checks pass**, observed from the parent side of a real pty (exact termios flags, live resize, full restore equality, idempotency, a 0.1 ms EINTR wake against a 2000 ms timeout), plus the non-tty path. **Still open:** the app-level hand check is blocked by `main`'s stub (T2.5). | `src/platform/terminal_posix.cpp`, `AGENTS.md`, `scripts/check_layers.sh`, `.github/workflows/ci.yml`, other non-frozen `src/**` + `tests/**` |
 
 ## 8. Stage plan (S1–S6)
 
@@ -175,7 +176,7 @@ Recording the reasons here so a future session does not "simplify" them again.
 | **S3** | v3 §4 (workstreams/RACI) + §5 (task backlog incl. T0.6, Phase 0 status carried with evidence, Sep-28 schedule) | ✅ done 2026-09-22 |
 | **S4** | v3 §6 (DoD + A1–A12) + §7 (runbook) + §8 (risks) + §9 (the answers) + §10 (self-review, revision log, review dispositions) | ✅ done 2026-09-22 |
 | **S5** | `AGENTS.md` (§2 commands, §5 clock/threading invariants, §7 behaviour contracts) + superseded banner on v2 + `REVIEW_ADJUDICATION.md` round 8 for gpt-v9…v14 | ⬜ P3 — after `ctest` is green |
-| **S6** | Implement Phase 1 against the re-frozen v3.0 contracts (not a documentation stage) | ⬜ **the only stage that scores points** |
+| **S6** | Implement Phase 1 against the re-frozen v3.0 contracts (not a documentation stage) | 🟨 **in progress — T1.1 (`PosixTerminal`) implemented and pty-verified 2026-09-22**; T1.2/T1.3 (W1), T2.x, T3.1, T4.x still `TODO`. The only stage that scores points |
 
 ---
 
@@ -189,7 +190,7 @@ Recording the reasons here so a future session does not "simplify" them again.
 3. Ratify the v3.0 contract change with W2 + the affected owners   ✅ D18 (W2, 2026-09-22)
    (the proposal text was v3 §3.12 + task T0.6; §10 below is the announcement still to send)
 4. Apply the v3.0 header/contract change          → S2 (bytes) = T0.6   ✅ `d6379df`
-5. Implement Phase 1                              → S6
+5. Implement Phase 1                              → S6   🟨 T1.1 done; T1.2/T1.3 next
 6. Verification, PPT, runbook, video              → S4 (P2) then S5 (P3)
 ```
 
@@ -244,13 +245,14 @@ they read first.
 > wrong, say which — nothing is applied before that.
 
 **Done.** D18 is recorded in §4 above and T0.6 landed as `d6379df`; this proposal is kept as the record of what
-was asked and answered. **§11 is the part that still needs sending** (T0.6 Step 6).
+was asked and answered. **§11 was sent to the group on 2026-09-22** (T0.6 Step 6) and is kept as the record.
 
 ---
 
 ## 11. Paste-ready T0.6 Step 6 announcement (send to the group)
 
-Step 6 is the one T0.6 step a human has to send; it is left unchecked in the plan for that reason. Text to paste:
+Step 6 is the one T0.6 step a human has to send; it is left unchecked in the plan for that reason. **Sent to the
+group on 2026-09-22 (operator-stated).** Kept as the record of what was sent:
 
 > **Contracts are now v3.0** — landed as `d6379df` on 2026-09-22. What it means for your next commit:
 >
