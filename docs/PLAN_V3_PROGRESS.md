@@ -230,6 +230,33 @@ Recording the reasons here so a future session does not "simplify" them again.
   `grep -n v2` finds **no** mention in `scheduler.cpp`, `test_scheduler.cpp` or `fake_terminal.hpp`. What the
   review got right, and what was fixed: the test header narrated *process* ("T1.3 Step 4 greps this file",
   "§6.1 DoD 2", "so they are owed, not forgotten") — exactly the plan-process prose §9 forbids.
+- **A second instance of the barrier race — found by CI, at the HEAD of the test, after the 150-run loop missed
+  it.** The cleanup commit `d3e3794` (docs only) failed on `windows-latest` with `FAIL
+  tests/unit/test_scheduler.cpp:211  h.sched.snapshot().cycles == 4`, while the identical *code* (`572eddc`) had
+  been green on Windows minutes earlier — the definition of a flake. It is the same defect class as the recorded
+  `waitForTickStarted` finding above, but in the one place that was not converted: the **head** of
+  `threaded_marquee_keeps_animating_across_refresh_deadlines` still used `waitForTickStarted(1, …)`, which is a
+  *start* barrier — "tick 1 has begun", nothing completed.
+  **Root cause, reproduced on demand rather than by timing luck:** `tick()` calls `size()` (the barrier) and only
+  *then* reads `term_.nowMs()` under `mu_` (§3.8 rule 3), so a clock store landing in that gap is read by tick 1.
+  The first frame is immediate (`!hasRendered`), so tick 1 stamps `lastRenderMs = 100`, moving every deadline to
+  200/300/400 — iteration 1's wake at clock 100 is then *not* due (`100 - 100 < 100`), one deadline frame is lost,
+  and the suite sees **3** where the test asserts 4. Demonstrated deterministically with a scratch-only
+  `FakeTerminal` subclass whose `size()` stores the clock on its first call, forcing the store into exactly the
+  window the start barrier permits: `cycles == 4` failed and `lastRenderMs` was 100, not 0.
+  **Fix:** the head is now a completion barrier (`waitForTickStarted(2, …)`) plus the precondition it actually
+  depends on, checked explicitly — `cycles == 1` **and** `lastRenderMs == 0` — so a regression fails at the
+  precondition instead of confusingly in the final count. Verified non-vacuous: under the forced racing double,
+  `lastRenderMs == 0` fails. **200/200 clean runs** after the fix.
+  **Generalised rule:** any assertion that depends on a *rendered* frame needs the **completion** barrier
+  (`waitForTickStarted(n + 1)`, or `tickCount()` then `+ 2`); `waitForTickStarted(1, …)` is sound only where the
+  test asserts nothing about a render — it is deliberately kept in `request_stop_…`, where demanding a completion
+  barrier would instead force a real 1 s poll wait.
+- **The inline analyzer was also observed being wrong in the opposite direction: a false negative.** While
+  writing the scratch reproduction it reported `✓ C/C++ clean` on a file gcc refused to compile (`passing 'const
+  std::atomic<long long>' as 'this' argument discards qualifiers`). The same heuristic that invents 22 errors on a
+  clean file missed a real one on the next edit — the strongest available argument that the real build plus
+  `lens_diagnostics source=lsp` are the only authorities, and that its "quick fixes" must never be applied.
 
 ## 7. Session log (newest last)
 

@@ -199,7 +199,14 @@ TEST(threaded_marquee_keeps_animating_across_refresh_deadlines) {
   h.params.pollingMs = 1000;
   CHECK(h.proc.start());
   h.sched.start();
-  CHECK(h.term.waitForTickStarted(1, kHangGuardMs));
+  // tick n+1 STARTING proves tick n's body returned (see the barrier note above), so this completion barrier
+  // also pins WHEN the immediate frame is stamped. tick 1 reads the clock AFTER size() (rule 3), so a start
+  // barrier would let the loop's first clock store of 100 land in that gap: the immediate frame would then be
+  // stamped at 100, every deadline would sit one refresh period late, and the loop would render 3 frames, not
+  // 4. lastRenderMs below is the checked precondition that makes the final count deterministic.
+  CHECK(h.term.waitForTickStarted(2, kHangGuardMs));
+  CHECK_EQ(h.sched.snapshot().cycles, 1);               // !hasRendered => the first frame is immediate...
+  CHECK_EQ(h.sched.snapshot().lastRenderMs, 0);         // ...stamped at the pre-loop clock the deadlines count from
   for (int i = 1; i <= 3; ++i) {
     h.term.clock = i * 100;
     h.sched.wake();
