@@ -878,7 +878,7 @@ regenerated `git hash-object` table → both run configs' `PROGRAM_PARAMS` clear
 `ctest --preset debug` reports *100% tests passed, 0 tests failed out of 1 (unit)*. **11/11** hashes match
 `git hash-object include/csopesy/*.hpp`, and the **7 headers nobody needed to touch still carry their exact
 v2.6 blob hashes** — checkable evidence that this is the delta claimed. **The CI half is green on all three OSes** — [run 35724109198](https://github.com/LorensTee/CSOPESY-MCO3/actions/runs/35724109198): ubuntu-latest 17 s, macos-latest 26 s, windows-latest 45 s.
-- [ ] **Step 6 — announce. NOT DONE: this one is the operator's to send.** The group message stating the marker
+- [x] **Step 6 — announce. DONE: sent 2026-09-22** (operator-stated, recorded in `PLAN_V3_PROGRESS.md` §1). The group message stating the marker
 is v3.0, the three deleted headers, and the four contract removals (`asciiArt`, `marqueeRow`, `measurePath`,
 `Clock`) — so nobody re-adds one from memory. Paste-ready text: `PLAN_V3_PROGRESS.md` §11.
 - [x] **Step 7 — committed** as **`d6379df`**
@@ -886,8 +886,8 @@ is v3.0, the three deleted headers, and the four contract removals (`asciiArt`, 
 export deliberately kept out of it as `cc74d5d`).
   **Evidence recorded:** the guard's count line, the `ctest` summary, the hash check.
 
-> **Still open from T0.6 — one item, and it does not block Phase 1:** **Step 6's group announcement**, a human
-action whose text is ready in `PLAN_V3_PROGRESS.md` §11. **The CI half closed on 2026-09-22:** run
+> **T0.6 is fully closed (2026-09-22):** **Step 6's group announcement was sent** (a human
+action, recorded in `PLAN_V3_PROGRESS.md` §1). **The CI half closed on 2026-09-22:** run
 [35724109198](https://github.com/LorensTee/CSOPESY-MCO3/actions/runs/35724109198) is green on ubuntu-latest,
 macos-latest and windows-latest, so `AGENTS.md` §8 item 2 is satisfied.
 

@@ -10,7 +10,8 @@ and a marquee worker, one `std::mutex`, one `std::condition_variable`.
 the T0.6 group announcement has been sent, and the CI run on the v3.0 commit is **green on all three OSes**
 (run `35724109198`). The CLion-side live gate lives at **T3.4** because nothing about it is observable before
 features exist. `include/csopesy/*.hpp` are the **v3.0** frozen contracts. Of Phase 1, `T1.1`
-(`src/platform/terminal_posix.cpp`) is implemented and pty-verified on the owner's Linux machine; the remaining
+(`src/platform/terminal_posix.cpp`), `T1.2` (`src/entities/process.cpp`) and `T1.3`
+(`src/app/scheduler.cpp`) are implemented and CI-green on all three OSes; the remaining
 `src/**` files are still `TODO` stubs, so do not assume a task is done because the file exists — check
 `docs/IMPLEMENTATION_PLAN_v3.md` §5 for the phase it belongs to.
 
