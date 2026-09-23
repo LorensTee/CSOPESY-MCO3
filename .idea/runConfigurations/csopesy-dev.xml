@@ -1,5 +1,5 @@
 <component name="ProjectRunConfigurationManager">
-  <configuration default="false" name="csopesy-dev" type="CMakeRunConfiguration" factoryName="Application" REDIRECT_INPUT="false" ELEVATE="false" USE_EXTERNAL_CONSOLE="false" EMULATE_TERMINAL="true" PASS_PARENT_ENVS_2="true" PROJECT_NAME="csopesy_marquee" TARGET_NAME="csopesy" CONFIG_NAME="debug" RUN_TARGET_PROJECT_NAME="csopesy_marquee" RUN_TARGET_NAME="csopesy" WORKING_DIR="file://$PROJECT_DIR$" PROGRAM_PARAMS="">
+  <configuration default="false" name="csopesy-dev" type="CMakeRunConfiguration" factoryName="Application" REDIRECT_INPUT="false" ELEVATE="false" USE_EXTERNAL_CONSOLE="false" EMULATE_TERMINAL="true" WORKING_DIR="file://$PROJECT_DIR$" PASS_PARENT_ENVS_2="true" PROJECT_NAME="csopesy_marquee" TARGET_NAME="csopesy" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="csopesy_marquee" RUN_TARGET_NAME="csopesy">
     <method v="2">
       <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
     </method>
