@@ -1,9 +1,43 @@
-// src/features/commands/line_editor.cpp — implements the §3.11 line-editor rules for Interpreter (T2.3).
-// The editing state and visibleSlice live on Interpreter, so this unit declares nothing of its own; it
-// includes both contracts it serves, which also keeps the unit non-empty (MSVC /W4 C4206).
+// src/features/commands/line_editor.cpp — the §3.11 line-editor rules (T2.3).
+//
+// Raw mode disables echo, so the app echoes keystrokes itself. The editing state (line_ / message_ / quit_)
+// is frozen on Interpreter, so the keystroke path and its visibleSlice helper are defined here as members
+// of that type rather than on a second object. line_editor.hpp declares nothing of its own by design.
 #include "csopesy/interpreter.hpp"
-#include "csopesy/line_editor.hpp"
 
-// TODO(T2.3): printable chars append; Backspace deletes the char before the cursor (no-op at column 0);
-// Enter submits; Eof submits/quiets; arrows are ignored (no crash, no state change); plus the
-// tail-window implementation of visibleSlice.
+#include <cstddef>
+
+namespace csopesy {
+
+std::string visibleSlice(std::string_view buffer, int availWidth) {
+  if (availWidth <= 0) return {};
+  const std::size_t width = static_cast<std::size_t>(availWidth);
+  if (buffer.size() <= width) return std::string(buffer);
+  // Show the tail: the prompt row is one fixed row, so the cursor stays visible instead of wrapping.
+  return std::string(buffer.substr(buffer.size() - width));
+}
+
+bool Interpreter::feed(const KeyEvent& ev) {
+  switch (ev.type) {
+    case KeyType::Char: {
+      // Printable ASCII only: control bytes and non-ASCII keys are ignored on entry (§3.7 rule 7).
+      const unsigned char c = static_cast<unsigned char>(ev.ch);
+      if (c >= 0x20 && c <= 0x7E) line_.push_back(ev.ch);
+      return false;
+    }
+    case KeyType::Backspace:
+      if (!line_.empty()) line_.pop_back();        // the cursor is always at the end, so this is the last char
+      return false;
+    case KeyType::Enter:
+    case KeyType::Eof: {
+      const std::string submitted = line_;
+      line_.clear();
+      message_ = executeLine(submitted);
+      return true;
+    }
+    default:
+      return false;                                // arrows, Tab and Escape are ignored, with no state change
+  }
+}
+
+}  // namespace csopesy
