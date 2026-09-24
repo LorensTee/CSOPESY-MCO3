@@ -19,7 +19,7 @@ machines.
 
 | | `csopesy-dev` | `csopesy-quiz` |
 | --- | --- | --- |
-| Type | CMake Application | Custom Build Application (see caveat below) |
+| Type | CMake Application | Custom Build Application (display name; type id `CLionExternalRunConfiguration` — see caveat below) |
 | Executable / target | CMake target `csopesy` | `$PROJECT_DIR$/frozen/csopesy.exe` |
 | Working dir | `$ProjectFileDir$` | `$ProjectFileDir$` |
 | Program arguments | *(none)* | *(none)* — a graded take sets nothing; a measurement take sets `--poll-ms=N --refresh-ms=M` (D14) |
@@ -32,14 +32,25 @@ what the handout's *"no longer recompile the project when taking the quiz"* forb
 configurations is the fix (§10, "Split `csopesy-dev` … from `csopesy-quiz`"): the dev config keeps the
 normal CMake build, and the quiz config has no build step at all.
 
-> **Caveat on `csopesy-quiz` — confirm in the GUI.** Its XML was authored by hand, and the
-> `CustomBuildApplication` type id could **not** be verified on the machine that wrote it (the CLion
-> distribution is compressed, so the type id is not discoverable offline). The plan documents a second
-> accepted route: a CMake-Application configuration whose `Executable` is overridden to the frozen path
-> **with its `Build` entry removed** (§2.4). **Either is acceptable to the gate** — but if CLion does not
-> recognise the file, recreate the configuration through *Edit Configurations → + → Custom Build
-> Application* with all build-target fields left empty, and commit what CLion writes. That version is
-> authoritative; delete this one.
+> **Caveat on `csopesy-quiz` — the committed type id is not registered by CLion 2026.2.3 (checked
+> 2026-09-24).** The XML was authored by hand and declares `type="CustomBuildApplication"`, but that id
+> occurs **nowhere** in the installed CLion 2026.2.3: not in any `.jar` entry, not in any plain file. The
+> entry the GUI actually offers under the name *Custom Build Application* is
+> `com.jetbrains.cidr.cpp.execution.external.run.CLionExternalRunConfigurationType`
+> (`intellij.clion.execution.jar`), and its `ConfigurationTypeBase` id is
+> **`CLionExternalRunConfiguration`** (verified by disassembling the constructor; the display name is the
+> bundle key `external.run.configuration.name` = "Custom Build Application" in
+> `CLionExecutionBundle.properties`). Its executable is read through `ExecutableData.loadExternal` (flat
+> attribute `RUN_PATH`, or a configured *Custom Build Target*) — **not** the hand-written `EXECUTABLE`
+> attribute — so the rest of the quiz XML's attribute set should be treated as unverified too. (For contrast,
+> `csopesy-dev`'s `type="CMakeRunConfiguration"` **is** the registered id
+> — `CMakeAppRunConfigurationType`, display name "Application" — so the dev config is fine.)
+> So CLion will most likely show the committed `csopesy-quiz` as an
+> unknown/invalid configuration. This is a **T3.4 prerequisite**: recreate it in the GUI via *Edit
+> Configurations → + → Custom Build Application* with an empty custom build target and the executable set to
+> `frozen/csopesy.exe`, no build step, and commit what CLion writes as the authoritative
+> file. The plan's second accepted route — a CMake Application config whose `Executable` is overridden to
+> the frozen path **with its `Build` entry removed** (§2.4) — remains valid too.
 
 ## Step 5 gate — per OS (fill the result cells)
 
@@ -75,11 +86,14 @@ still shows Run/Debug in CLion initializing the program, which is what the hando
 > `EMULATE_TERMINAL="true"`, which suits three of the four members. If W3 has to flip it, the tracked file
 > goes dirty. Decide one of: keep the committed default and have W3 suppress the local change
 > (`git update-index --skip-worktree .idea/runConfigurations/csopesy-dev.xml`), or commit a third
-> Windows-specific configuration. **Not resolved by the plan; resolve before the freeze.**
+> Windows-specific configuration. **Not resolved by the plan.** T6.3 (the freeze) has since landed
+(`docs/frozen-artifact.md`), so this is now a decision to settle during the T3.4 GUI press; the switch
+lives only in the run-config XML, so flipping it changes neither `frozen/csopesy.exe` nor its SHA-256.
 
 ## `csopesy-quiz` Before-launch list (Step 5, captured not-run)
 
-Confirm **without running it** (the frozen artifact does not exist until T6.3):
+T6.3 is complete (`docs/frozen-artifact.md`, tag `quiz-frozen`), so the frozen artifact now exists and this
+section can be filled by the T3.4 GUI press rather than captured from the editor alone. Confirm:
 
 *Before-launch list as shown in the GUI — to capture.*
 

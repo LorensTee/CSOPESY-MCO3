@@ -42,7 +42,7 @@ run above re-confirms the suite on this exact optimization level.
 | Pre-flight item | Status |
 | --- | --- |
 | `frozen/` present on disk and correctly **absent** from git | ✅ (`git check-ignore frozen/csopesy.exe` → `.gitignore:5`) |
-| `csopesy-quiz` has **no** Build step | ✅ `CustomBuildApplication`, `<configuration …>` carries no build entry |
+| `csopesy-quiz` has **no** Build step | ✅ the committed XML carries no build entry — **but the config cannot be pressed as committed**: its `type="CustomBuildApplication"` id is not registered by CLion 2026.2.3 (the GUI's *Custom Build Application* type id is `CLionExternalRunConfiguration`). Recreate it in the GUI before the T3.4 press — see `docs/clion-run-config.md` |
 | `csopesy-quiz` Program arguments empty for graded takes | ✅ `PROGRAM_PARAMS=""` |
 | Executable path is the frozen binary | ✅ `EXECUTABLE="file://$PROJECT_DIR$/frozen/csopesy.exe"` |
 | Binary starts and exits 0 on the `--no-tty` path | ✅ `help` → six command lines; `exit` → one goodbye, rc=0; also with `--refresh-ms=25 --poll-ms=5` |
@@ -56,8 +56,10 @@ sets `EMULATE_TERMINAL="true"`. On Windows the backend needs a **real console ha
 `SetConsoleMode`; the doc's own guidance is that W3's Windows build uses **Run in external console**. The
 T3.4 press is where this is settled: if the emulated terminal fails the loud VT startup check (D5), either
 flip `csopesy-quiz.xml` to `USE_EXTERNAL_CONSOLE="true"` (a tracked change, acceptable because this file *is*
-the Windows graded config) or use the T0.5b external-launch fallback. **Flipping the switch does not change
-this binary or its SHA-256** — only the run configuration XML — so the freeze above stays valid.
+the Windows graded config) or use the T0.5b external-launch fallback. Note that the same press must first
+**recreate `csopesy-quiz` in the GUI** (the committed type id is not recognised — `docs/clion-run-config.md`).
+**Flipping the switch does not change this binary or its SHA-256** — only the run configuration XML — so the
+freeze above stays valid.
 
 ## Re-freeze rule
 
