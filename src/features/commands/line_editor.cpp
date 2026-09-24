@@ -28,11 +28,20 @@ bool Interpreter::feed(const KeyEvent& ev) {
     case KeyType::Backspace:
       if (!line_.empty()) line_.pop_back();        // the cursor is always at the end, so this is the last char
       return false;
-    case KeyType::Enter:
+    case KeyType::Enter: {
+      const std::string submitted = line_;
+      line_.clear();
+      message_ = executeLine(submitted);
+      return true;
+    }
     case KeyType::Eof: {
       const std::string submitted = line_;
       line_.clear();
       message_ = executeLine(submitted);
+      // Raw mode has ISIG off, so Ctrl+C, Ctrl+D and a closed stdin all arrive as this one key. Requesting
+      // quit here is what makes §3.10's non-signal exit paths work: ConsoleApp observes quit_ right after
+      // postEvent and runs requestStop() -> join() before the terminal is restored.
+      quit_ = true;
       return true;
     }
     default:

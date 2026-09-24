@@ -106,6 +106,24 @@ TEST(eof_at_position_zero_marks_the_line_complete) {
   CHECK_STR(h.interp.buffer(), "");
 }
 
+// Raw mode has ISIG off, so Ctrl+C, Ctrl+D and a closed stdin all arrive as KeyType::Eof. Requesting quit
+// here is what lets those keys reach ConsoleApp's observe step (§3.10's non-signal exit paths).
+TEST(eof_requests_quit) {
+  Harness h;
+  CHECK(!h.interp.quitRequested());
+  CHECK(h.interp.feed(key(KeyType::Eof)));      // still marks the line complete
+  CHECK(h.interp.quitRequested());
+}
+
+TEST(eof_submits_partial_text_then_requests_quit) {
+  Harness h;
+  type(h, "hi");
+  CHECK(h.interp.feed(key(KeyType::Eof)));
+  CHECK_STR(h.interp.buffer(), "");
+  CHECK(contains(h.interp.lastMessage(), "not recognized"));
+  CHECK(h.interp.quitRequested());
+}
+
 // --- T2.3 visibleSlice: one fixed row, tail shown so the cursor stays visible ------------------------
 
 TEST(visible_slice_shows_the_whole_buffer_when_it_fits) {
