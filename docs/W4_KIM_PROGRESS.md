@@ -87,6 +87,9 @@ FIRST after a lost context; then continue from **## Exact next action**.
   * v2-deleted-feature sweep (`glyph|FrameBuffer|ascii_art|marquee_row|measurePath|artWidthFor|composeBand|drawFrame|--measure|--diag|injected Clock|renderDiff`) → only prose in frozen headers explaining that those things are gone; **no code reintroduced**
 * **Visual smoke:** a scratch program (not committed) printed a `rows=16, cols=60` menu frame and a 7-line
   help-message frame; both matched §3.9 (welcome, blank, band at row 3, chrome, message, prompt last).
+* **Cross-platform CI (pushed tip `daee787`):** run
+  [35978176723](https://github.com/LorensTee/CSOPESY-MCO3/actions/runs/35978176723) — `completed success` on
+  ubuntu / macOS / Windows, each running the layer guard, build and both `ctest` targets (created 2026-09-24T08:56Z).
 
 ## Problems / blockers
 
@@ -131,7 +134,7 @@ FIRST after a lost context; then continue from **## Exact next action**.
 
 ## Chronological work log
 
-### 2026-09-25 — session start
+### 2026-09-24 — session start
 
 * Fast-forwarded `main` 5ea6ca9 → 04b49e4 (`git pull --ff-only`).
 * Read `AGENTS.md`, `docs/PLAN_V3_PROGRESS.md`, `docs/IMPLEMENTATION_PLAN_v3.md` §3.9 + §5 + §6, `CONTRACTS.md`,
@@ -143,14 +146,14 @@ FIRST after a lost context; then continue from **## Exact next action**.
 * Baseline: configure + build OK; `ctest --preset debug` 2/2 (unit 90 + smoke); guard `OK (22 files scanned)`;
   11/11 hashes match `CONTRACTS.md`.
 
-### 2026-09-25 — T4.1 + T4.2/T4.3 tests
+### 2026-09-24 — T4.1 + T4.2/T4.3 tests
 
 * Wrote `tests/unit/test_scroll.cpp` (11 tests) and `tests/unit/test_renderer.cpp` (16 tests).
 * First RED run **aborted** (`std::out_of_range`) because the stub returns `""` and the split helper called
   `substr(3)`. Made the helper abort-proof (report + blank rows; a safe `window()` instead of `substr`).
 * Clean RED: `FAILED  180 assertion(s)` (scroll 79, renderer 101), exit 1.
 
-### 2026-09-25 — implementation and GREEN
+### 2026-09-24 — implementation and GREEN
 
 * Implemented `scrollOffset`, `sliceRow`, `buildFrame`, `bandWidthFor` in `src/features/marquee/renderer.cpp`.
 * First GREEN attempt: 2 assertions failed — both were test-expectation bugs, not implementation bugs:
@@ -159,7 +162,16 @@ FIRST after a lost context; then continue from **## Exact next action**.
   distinctive band text (`"ZQX"`) for the uniqueness check.
 * GREEN: `OK  117 tests`.
 
-### 2026-09-25 — verification
+### 2026-09-24 — verification
 
 * Clean rebuild warning-free; `ctest` 2/2 (unit 117 + smoke); guard OK; 11/11 hashes; v2 sweep clean.
 * Printed a visual menu frame and a help-message frame from a scratch program; layout matches §3.9.
+
+### 2026-09-24 — post-push consistency pass
+
+* Pushed the three W4 commits (`cc4e879`, `e3ae9e8`, `daee787`) to `origin/main`; CI run 35978176723 is green on
+  all three OSes.
+* A review (`docs/replies/gpt-reply-v2.md`) flagged two doc issues, both verified against the repo and fixed:
+  the W4 log date was off by one day (commit timestamps are `2026-09-24 16:55 +0800`, not 2026-09-25), and
+  `PLAN_V3_PROGRESS.md` still carried stale Phase-1 status text (§1 "Current stage"/"Next action", §6's
+  "T4.2/T2.4 still a stub" finding, §8's S6 row, §9 step 5). Docs-only; no source, test or frozen file touched.
