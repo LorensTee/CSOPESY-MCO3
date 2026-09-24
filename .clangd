@@ -1,0 +1,6 @@
+# .clangd — point clangd (and IDE tooling) at the CMake-generated compilation database.
+# The debug preset exports build/debug/compile_commands.json (CMAKE_EXPORT_COMPILE_COMMANDS=ON), but clangd
+# only auto-discovers a database at the project root or a parent `build/` directory. This keeps header and
+# per-target `-I` resolution (notably tests/support) working without a symlink at the repo root.
+CompileFlags:
+  CompilationDatabase: build/debug
