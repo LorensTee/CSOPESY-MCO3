@@ -1,0 +1,3 @@
+help
+set_speed 0
+exit

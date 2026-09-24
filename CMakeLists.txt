@@ -50,5 +50,11 @@ add_test(NAME unit COMMAND csopesy_tests)
 # The scheduler tests now drive a real worker thread. A missing join would hang them forever; a bounded timeout
 # turns that hang into a red test instead of a stuck CI job. 60 s is ~100x the suite's real runtime.
 set_tests_properties(unit PROPERTIES TIMEOUT 60)
-# The real-binary end-to-end smoke test is registered in T2.5, alongside the plain line mode that makes it pass
-# (a stub `main` cannot satisfy it here, and a test that stays red for two phases trains people to ignore CI).
+# Portable end-to-end smoke test: no shell, no `printf`, no guessed binary path, no *nix-only syntax.
+# $<TARGET_FILE:csopesy> resolves to the real artifact on every generator (VS puts it in build/vs/Debug).
+# It drives the real binary's --no-tty plain line mode, so it is byte-portable across bash, cmd and pwsh.
+add_test(NAME smoke COMMAND ${CMAKE_COMMAND}
+         -DEXE=$<TARGET_FILE:csopesy>
+         -DINFILE=${CMAKE_CURRENT_SOURCE_DIR}/tests/smoke/basic.txt
+         -P ${CMAKE_CURRENT_SOURCE_DIR}/tests/smoke/run_smoke.cmake)
+set_tests_properties(smoke PROPERTIES WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
