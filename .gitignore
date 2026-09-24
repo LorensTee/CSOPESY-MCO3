@@ -37,9 +37,11 @@ Testing/
 
 # --- CLion: the IDE state is local, the run configurations are COMMITTED (§T0.5) --------------
 # .idea/runConfigurations/{csopesy-dev,csopesy-quiz}.xml ARE the graded run configuration and are
-# part of the deliverable, so they must stay tracked.
+# part of the deliverable, so they must stay tracked. customTargets.xml holds the `csopesy-frozen`
+# Custom Build Target that csopesy-quiz references by name, so it is part of that configuration too.
 .idea/*
 !.idea/runConfigurations/
+!.idea/customTargets.xml
 
 # --- Local scratch ----------------------------------------------------------------------------
 *.tmp

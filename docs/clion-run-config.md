@@ -32,25 +32,22 @@ what the handout's *"no longer recompile the project when taking the quiz"* forb
 configurations is the fix (§10, "Split `csopesy-dev` … from `csopesy-quiz`"): the dev config keeps the
 normal CMake build, and the quiz config has no build step at all.
 
-> **Caveat on `csopesy-quiz` — the committed type id is not registered by CLion 2026.2.3 (checked
-> 2026-09-24).** The XML was authored by hand and declares `type="CustomBuildApplication"`, but that id
-> occurs **nowhere** in the installed CLion 2026.2.3: not in any `.jar` entry, not in any plain file. The
-> entry the GUI actually offers under the name *Custom Build Application* is
-> `com.jetbrains.cidr.cpp.execution.external.run.CLionExternalRunConfigurationType`
-> (`intellij.clion.execution.jar`), and its `ConfigurationTypeBase` id is
-> **`CLionExternalRunConfiguration`** (verified by disassembling the constructor; the display name is the
-> bundle key `external.run.configuration.name` = "Custom Build Application" in
-> `CLionExecutionBundle.properties`). Its executable is read through `ExecutableData.loadExternal` (flat
-> attribute `RUN_PATH`, or a configured *Custom Build Target*) — **not** the hand-written `EXECUTABLE`
-> attribute — so the rest of the quiz XML's attribute set should be treated as unverified too. (For contrast,
-> `csopesy-dev`'s `type="CMakeRunConfiguration"` **is** the registered id
-> — `CMakeAppRunConfigurationType`, display name "Application" — so the dev config is fine.)
-> So CLion will most likely show the committed `csopesy-quiz` as an
-> unknown/invalid configuration. This is a **T3.4 prerequisite**: recreate it in the GUI via *Edit
-> Configurations → + → Custom Build Application* with an empty custom build target and the executable set to
-> `frozen/csopesy.exe`, no build step, and commit what CLion writes as the authoritative
-> file. The plan's second accepted route — a CMake Application config whose `Executable` is overridden to
-> the frozen path **with its `Build` entry removed** (§2.4) — remains valid too.
+> **Resolved 2026-09-24: `csopesy-quiz` is now CLion 2026.2.3's own output.** The file was recreated in
+> the GUI (*Edit Configurations → + → Custom Build Application*, executable `frozen/csopesy.exe`,
+> working directory project root, no program arguments, **Run in external console**, Before-launch **Build
+> removed**) and shared to `.idea/runConfigurations/csopesy-quiz.xml` via the GUI's *Store as project
+> file* mechanism (which moves the entry out of the local `workspace.xml` `<RunManager>` into the tracked
+> file wrapped in `<component name="ProjectRunConfigurationManager">` — content otherwise identical).
+> The committed XML is that generated entry with only the Build task removed: `type` is the registered id
+> **`CLionExternalRunConfiguration`**, the executable travels as `RUN_PATH="$PROJECT_DIR$/frozen/csopesy.exe"`
+> (plus `TARGET_NAME="csopesy-frozen"` / `CONFIG_NAME="csopesy-frozen"`, whose definition lives in the
+> likewise-committed `.idea/customTargets.xml`), `USE_EXTERNAL_CONSOLE="true"`, and there is **no**
+> `<method>` (Before-launch) block — so a Run press cannot recompile anything (handout D10, plan §T3.4).
+> Correction to the handoff: the GUI entry as first created still carried
+> `<option name="CLION.EXTERNAL.BUILD" enabled="true" />` (proven by the `workspace.xml` bytes) — the
+> "no Build" state was *not* yet true and was fixed by removing the task, not assumed. Owner still owes
+> the final confirmation in the GUI: the shared entry loads without warnings, and a Run press leaves the
+> frozen SHA-256 unchanged (T3.4 gate, `docs/frozen-artifact.md`).
 
 ## Step 5 gate — per OS (fill the result cells)
 
@@ -80,22 +77,19 @@ If a terminal check fails: try the other switch, then the **T0.5b** fallback
 (`scripts/run_external.{sh,bat}`, which launches the already-built binary in a real terminal — the video
 still shows Run/Debug in CLion initializing the program, which is what the handout asks).
 
-> **Known tension, still open.** The terminal switch is stored *inside* the run configuration
-> (`EMULATE_TERMINAL` / `USE_EXTERNAL_CONSOLE`), so one committed file cannot encode both the
-> Linux/macOS choice and W3's external-console choice. The committed files currently set
-> `EMULATE_TERMINAL="true"`, which suits three of the four members. If W3 has to flip it, the tracked file
-> goes dirty. Decide one of: keep the committed default and have W3 suppress the local change
-> (`git update-index --skip-worktree .idea/runConfigurations/csopesy-dev.xml`), or commit a third
-> Windows-specific configuration. **Not resolved by the plan.** T6.3 (the freeze) has since landed
-(`docs/frozen-artifact.md`), so this is now a decision to settle during the T3.4 GUI press; the switch
-lives only in the run-config XML, so flipping it changes neither `frozen/csopesy.exe` nor its SHA-256.
+> **Settled 2026-09-24 for `csopesy-quiz`; still open for `csopesy-dev`.** The shared quiz entry now sets
+> `USE_EXTERNAL_CONSOLE="true"` / `EMULATE_TERMINAL="false"` — the external-console choice the manual run
+> proved on Windows (marquee + prompt + typing + resize all worked). `csopesy-dev` still sets
+> `EMULATE_TERMINAL="true"`, which suits Linux/macOS; if a Windows dev press needs the external console,
+> keep that flip local (`git update-index --skip-worktree`) rather than committing a third file.
 
 ## `csopesy-quiz` Before-launch list (Step 5, captured not-run)
 
-T6.3 is complete (`docs/frozen-artifact.md`, tag `quiz-frozen`), so the frozen artifact now exists and this
-section can be filled by the T3.4 GUI press rather than captured from the editor alone. Confirm:
-
-*Before-launch list as shown in the GUI — to capture.*
+T6.3 is complete (`docs/frozen-artifact.md`, tag `quiz-frozen`), so the frozen artifact now exists. The
+shared `csopesy-quiz` entry above is CLion 2026.2.3's own output with the Build task removed — the
+committed XML carries **no** `<method>` (Before-launch) block, so the press cannot rebuild. Still owed by
+the owner in the GUI (T3.4 gate): press Run on the *shared* entry and confirm the frozen SHA-256 is
+unchanged.
 
 ## T6.3 Step 0 — re-verification once the artifact exists
 
