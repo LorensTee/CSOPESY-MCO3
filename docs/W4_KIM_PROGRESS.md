@@ -523,3 +523,11 @@ remaining self-contained W4 item is the human visual/CLion pass noted under **Ex
   editing the other owners' documents was the correct choice.
 * Re-ran the gate at the rebased tip before pushing: layer guard `OK (22 files scanned)`, `ctest` 2/2,
   11/11 frozen hashes unchanged, `git status` shows only W4's two doc paths.
+
+### 2026-09-24 — pushed tip and its CI
+
+* Pushed as **`7f64b5f`** (`main`, on top of W2's `debe270`). CI for that exact SHA:
+  [run 35981966258](https://github.com/LorensTee/CSOPESY-MCO3/actions/runs/35981966258) —
+  **completed/success**: ubuntu-latest (16 s), macos-latest (21 s), windows-latest (49 s), each running the
+  layer guard, configure, build and both `ctest` targets. The commits are documentation-only, so the compiled
+  tree is identical to `debe270`'s.
