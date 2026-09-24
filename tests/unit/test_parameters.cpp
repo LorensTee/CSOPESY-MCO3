@@ -149,5 +149,5 @@ TEST(set_text_refusal_never_mangles_a_high_byte_into_the_marquee) {
   Parameters p;
   p.setText("OK");
   p.setText("bad\xC3\xA9" "byte");   // concatenated so \xA9 does not absorb the following 'b' as a hex digit
-  CHECK_STR(p.text, "OK");                        // no mojibake, no partial write: D15 rejects, never normalizes
+  CHECK_STR(p.text, "OK");                        // refuse, never normalize: no mojibake, no partial write
 }

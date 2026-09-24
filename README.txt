@@ -13,8 +13,8 @@ Entry file
   src/main.cpp                      function main()
   src/app/console_app.cpp           class csopesy::ConsoleApp  (owns the run loop)
 
-Build (no config file, no extra dependencies beyond a C++17 compiler + CMake 3.21+)
-----------------------------------------------------------------------------------
+Build (no config file; needs a C++17 compiler, CMake 3.21+ and Ninja — the presets below pin the Ninja generator)
+-----------------------------------------------------------------------------------------------------------------
   POSIX (Linux / macOS):
       cmake --preset debug
       cmake --build --preset debug
