@@ -9,7 +9,8 @@ its evidence. Read this FIRST after a lost context; then continue from **## Exac
 
 * **Phase 1A (T4.1–T4.3) — COMPLETE, GREEN.** `src/features/marquee/renderer.cpp` is implemented; the two W4
   test files carry 27 new tests. Phase 1 is now code-complete across all four workstreams.
-* **Phase 2 (T5.2 macOS second opinion) — COMPLETE as far as macOS can take it (2026-09-24).** Baseline gate
+* **Phase 2 — the W4/macOS portion of T5.2 is complete (2026-09-24); the global T5.2 task is still pending**
+  **the Linux (W1) and Windows (W3) evidence, which does not exist yet.** Baseline gate
   green, CI green on three OSes for `5bdc7d0`, and the app driven on a real kernel pty for the acceptance
   cases A1–A11 with byte-exact frame validation. See **## Phase 2 — T5.2 macOS second-opinion verification**
   and the final **## Phase 2 final state report** below. One acceptance/spec inconsistency was found (A4
@@ -321,10 +322,28 @@ row23 |Command>                                                                 
   `CSOPESY` to the new text, and **0 malformed frames**. Typing stayed responsive throughout.
 * **A9 parameter-path parity** — `--refresh-ms=50` → 20 distinct band positions/s, `set_speed 50` → 20, and
   `--refresh-ms=100` → 10. Same-effect parity holds on this build; the **frozen-binary** take is still `T6.3`.
-* **A10 extremes** — `--refresh-ms=1 --poll-ms=1` → ~753 frames/s measured, and a command typed one key at a
-  time was still fully echoed (79 frames carried the complete command) with **0 malformed frames** in 3.6 MB of
-  stream. `--refresh-ms=10000` → 0 animation frames in 1.5 s idle, yet **16 echo frames during 0.8 s of
-  typing** — echo is not gated by `refreshMs`.
+* **A10 extremes** — all four values the case names were exercised on macOS:
+  * `--refresh-ms=1 --poll-ms=1` → ~753 frames/s measured; a command typed one key at a time was fully echoed
+    (79 frames carried the complete command) with **0 malformed frames** in 3.6 MB of stream.
+  * `--refresh-ms=10000` → 0 animation frames in 1.5 s idle, yet **16 echo frames during 0.8 s of typing** —
+    echo is not gated by `refreshMs`.
+  * `--poll-ms=1000` **and** the worst-case combination `--poll-ms=1000 --refresh-ms=10000` — these were a
+    real gap in the first pass and were run afterwards (`2026-09-24`). Each case types the 18-key command
+    `set_text A10 Check` one key at a time and measures the write→echo-frame latency per key:
+
+| Case (80×24) | Keys echoed | Echo latency median / max | Frames drawn while typing | Malformed | Exit |
+| --- | --- | --- | --- | --- | --- |
+| `--poll-ms=1000`, animating (refresh 100) | 18/18 | 2.5 / 2.6 ms | 19 | 0 | 0 |
+| `--poll-ms=1000`, stopped | 18/18 | 2.6 / 2.6 ms | 18 | 0 | 0 |
+| `--poll-ms=1000 --refresh-ms=10000` | 18/18 | 2.6 / 2.6 ms | 18 | 0 | 0 |
+| `--poll-ms=1000 --refresh-ms=1` | 18/18 | 2.2 / 2.6 ms | 34 | 0 | 0 |
+| `--poll-ms=1 --refresh-ms=10000` | 18/18 | 2.5 / 2.6 ms | 18 | 0 | 0 |
+
+  In every case: no keystroke lost, the command executed (`Marquee text set to "A10 Check".`), termios
+  restored, exit 0, 0 malformed frames. The median echo latency stays ~2.5 ms even with `pollingMs=1000` and
+  `refreshMs=10000`, which is the direct evidence that **`pollingMs` does not gate keystrokes** (a keystroke
+  notifies the condition variable, so the worker does not wait out the idle timeout). These latencies are a
+  **current-build** observation, not the frozen-binary sweep.
 * **A11 tiny terminal** — resize to 100×40 repainted at the new width (row 3 band, prompt on the last row);
   20×5 keeps band and prompt with no row exceeding 20:
 
@@ -438,18 +457,25 @@ Windows-only items in that row belong to Nathan. Nothing in this log claims othe
 
 ### Current status
 
-W4's Phase 2 work that is genuinely reachable from macOS is **complete**: the T5.2 macOS second-opinion
-verification (automated + real-pty interactive) and the T5.3 measurement-documentation scaffolding. The one
-remaining self-contained W4 item is the human visual/CLion pass noted under **Exact next action**.
+W4's Phase 2 work that is genuinely reachable from macOS is **complete**: the W4/macOS portion of the T5.2
+second-opinion verification (automated + real-pty interactive) and the T5.3 measurement-documentation
+scaffolding. The one remaining self-contained W4 item is the human visual/CLion pass noted under **Exact next
+action**.
+
+**T5.2 is a cross-OS task and is NOT globally complete.** Its Windows half is `T5.1`/`T3.4` (Nathan) and its
+Linux half belongs to Lorens; neither has been verified here. Only the macOS column is W4's and only it is done.
 
 ### T5.2 status
 
 * Baseline gate green at commit `5bdc7d0`: clean warning-free build, `ctest` 2/2 (unit 117 + smoke), guard
   `OK (22 files scanned)`, 11/11 frozen hashes unchanged.
 * CI run `35978839739` green on ubuntu-latest / macos-latest / windows-latest for that exact SHA.
-* Interactive verification on a real kernel pty: **9 scenarios, 2 916 frames, 0 malformed frames**, every exit
-  code 0, termios restored byte-identically in every scenario. A1–A11 observed; A8 recorded **33 distinct
+* Interactive verification on a real kernel pty: the six documented scenarios total **2 876 frames**
+  (894 + 71 + 43 + 18 + 1 828 + 22), **0 malformed frames**, every exit code 0, termios restored
+  byte-identically in every scenario; the later A10 `--poll-ms=1000` sweep adds five more clean cases
+  (a further 5 × 18/18 keys echoed, 0 malformed). A1–A11 exercised in full; A8 recorded **33 distinct
   marquee updates** in a 2.84 s one-key-at-a-time window. Full detail in the T5.2 section above.
+* **Not verified here:** `T5.2`'s Linux/Windows halves, `T5.1`, `T3.4`, `T1.4`, `T3.3` — other owners' machines.
 
 ### T5.3 status
 
@@ -533,3 +559,19 @@ remaining self-contained W4 item is the human visual/CLion pass noted under **Ex
   **completed/success**: ubuntu-latest (16 s), macos-latest (21 s), windows-latest (49 s), each running the
   layer guard, configure, build and both `ctest` targets. The commits are documentation-only, so the compiled
   tree is identical to `debe270`'s.
+
+### 2026-09-24 — review follow-up (`docs/replies/gpt-reply-v4.md`)
+
+A repo-checking review accepted the work and raised four corrections. Each was checked against the repo and
+dispositioned honestly:
+
+| Review point | Check | Action |
+| --- | --- | --- |
+| A10's `--poll-ms=1000` is unverified | **Correct** — no harness had ever passed `--poll-ms=1000` (only `--poll-ms=1`/`10`) | **Fixed with new evidence**, not with wording: five `--poll-ms=1000` cases run (table in the A10 bullet above). All pass. |
+| the `2 916` frame total does not match the table (sums to `2 876`) | **Correct** — the aggregate was wrong in the final report | Replaced with the table's actual sum, `2 876`, stated per-scenario. |
+| "T5.2 COMPLETE as far as macOS can take it" overstates a cross-OS task | **Correct in substance** — the sentence was W4-scoped, but "T5.2" is the cross-OS task, so it could read as a team-wide claim | Reworded everywhere: *W4/macOS portion of T5.2 complete; global T5.2 pending Linux/Windows.* |
+| the human visual fluidity/tearing pass is still pending | **Already recorded** as pending (limitation 4); the review agrees | No change; kept explicit. |
+
+The review also confirmed the two things the session deliberately did: no invented T5.3 measurements, and the
+A4 non-ASCII conflict handed to its owners instead of silently patched. No source, test or frozen header was
+touched by this follow-up.
