@@ -1,7 +1,9 @@
 # W4 / Kim Progress
 
-Persistent resume anchor for W4's Phase 1A work (`T4.1`–`T4.3`, the plain-text marquee renderer). Read this
-FIRST after a lost context; then continue from **## Exact next action**.
+Persistent resume anchor for W4's work. **Phase 1A** (`T4.1`–`T4.3`, the plain-text marquee renderer) is
+complete; **Phase 2** (`T5.2` macOS second opinion, `T5.3` measurement scaffolding) is recorded below with
+its evidence. Read this FIRST after a lost context; then continue from **## Exact next action** and the
+**## Phase 2 final state report**.
 
 ## Current status
 
