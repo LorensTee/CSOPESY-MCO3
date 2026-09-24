@@ -79,7 +79,7 @@ still shows Run/Debug in CLion initializing the program, which is what the hando
 
 ## `csopesy-quiz` Before-launch list (Step 5, captured not-run)
 
-Confirm **without running it** (the frozen artifact does not exist until T2.6/T6.3):
+Confirm **without running it** (the frozen artifact does not exist until T6.3):
 
 *Before-launch list as shown in the GUI — to capture.*
 

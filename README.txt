@@ -66,7 +66,7 @@ Parameters (defaults; the four that set values are reachable at runtime)
 
 Threads
 -------
-  The program runs two threads: one reads your keystrokes and interprets commands, and one
+  In normal TTY mode, the program runs two threads: one reads your keystrokes and interprets commands, and one
   animates the marquee and owns the screen (it is the only writer of the terminal). They share
   exactly one mutex and one condition variable; `exit`/Ctrl+C stop the worker and join it before
   the terminal is restored. See docs/threading-model.md for the full contract.
