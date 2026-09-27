@@ -10,6 +10,7 @@ using csopesy::KeyEvent;
 using csopesy::KeyType;
 using csopesy::MarqueeProcess;
 using csopesy::Parameters;
+using csopesy::ProcessState;
 using csopesy::visibleSlice;
 
 namespace {
@@ -247,6 +248,33 @@ TEST(set_text_non_ascii_is_rejected_and_unchanged) {
   CHECK_STR(h.params.text, "KEEP");
   CHECK_STR(run(h, "set_text \xE6\x97\xA5\xE6\x9C\xAC"), "set_text: only printable ASCII characters are supported.");
   CHECK_STR(h.params.text, "KEEP");
+}
+
+TEST(no_argument_commands_reject_appended_text) {
+  // Issue #1: extra text after a command that takes no argument must not run the command. Each check uses a
+  // fresh harness so the "state unchanged" half cannot be satisfied by an earlier command in the same test.
+  { Harness h; CHECK_STR(run(h, "help extra"), "Usage: help"); }
+  { Harness h; CHECK_STR(run(h, "start_marquee extra"), "Usage: start_marquee");
+    CHECK_EQ(static_cast<int>(h.proc.state), static_cast<int>(ProcessState::Stopped)); }
+  { Harness h; h.proc.start();
+    CHECK_STR(run(h, "stop_marquee extra"), "Usage: stop_marquee");
+    CHECK_EQ(static_cast<int>(h.proc.state), static_cast<int>(ProcessState::Running)); }
+  { Harness h; CHECK_STR(run(h, "exit extra"), "Usage: exit");
+    CHECK(!h.interp.quitRequested()); }
+}
+
+TEST(no_argument_commands_accept_the_bare_form_with_surrounding_whitespace) {
+  Harness h;
+  CHECK(contains(run(h, "   help   "), "Available commands:"));
+  CHECK(contains(run(h, " start_marquee "), "Marquee started"));
+  CHECK(contains(run(h, "  stop_marquee  "), "Marquee stopped"));
+}
+
+TEST(set_speed_rejects_more_than_one_value) {
+  Harness h;
+  CHECK_STR(run(h, "set_speed 100 200"), "Usage: set_speed <milliseconds>");
+  CHECK_STR(run(h, "set_speed 50 75"), "Usage: set_speed <milliseconds>");
+  CHECK_EQ(h.params.refreshMs, Parameters::defaults().refreshMs);   // unchanged after both rejections
 }
 
 TEST(commands_are_case_sensitive) {

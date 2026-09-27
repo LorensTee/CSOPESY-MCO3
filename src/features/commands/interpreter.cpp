@@ -78,7 +78,16 @@ std::string Interpreter::executeLine(const std::string& raw) {
   const std::string cmd = sep == std::string::npos ? line : line.substr(0, sep);
   const std::string arg = sep == std::string::npos ? std::string() : trim(line.substr(sep));
 
-  switch (lookup(cmd)) {
+  const Cmd command = lookup(cmd);
+  // Commands that take no argument reject appended text instead of silently ignoring it:
+  // `help hello` must not run `help`, and `exit hello` must not terminate the console.
+  if (!arg.empty() &&
+      (command == Cmd::Help || command == Cmd::Start || command == Cmd::Stop || command == Cmd::Exit)) {
+    message_ = "Usage: " + cmd;
+    return message_;
+  }
+
+  switch (command) {
     case Cmd::Help:
       message_ = kHelp;
       break;
