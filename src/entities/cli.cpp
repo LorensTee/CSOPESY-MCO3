@@ -1,7 +1,8 @@
-// src/entities/cli.cpp — argv parsing, the only parameter layer besides the commands (§T2.2).
-// Three flags — --no-tty, --refresh-ms=N, --poll-ms=N — in `--flag=value` form only. Bad input never aborts
-// startup: an unknown flag or a malformed/absent value warns and keeps the current value, a well-formed
-// out-of-range value is clamped and reported, and a repeated flag's last value wins.
+// src/entities/cli.cpp — command-line option parsing.
+//
+// Supported options are --no-tty, --refresh-ms=N, and --poll-ms=N.
+// Invalid input does not stop startup. Unknown options and invalid values produce warnings.
+// Valid values outside the allowed range are clamped. When an option is repeated, the last value wins.
 #include "csopesy/cli.hpp"
 
 #include <cstddef>
@@ -11,9 +12,8 @@
 namespace csopesy {
 namespace {
 
-// True when `s` matches [-+]?[0-9]+ in full. On success `mag` holds the magnitude saturated far above any
-// clamp bound and `negative` reports the sign, so a huge literal is treated as out-of-range (clamped) rather
-// than misclassified as malformed.
+// Return true only when s contains a complete signed integer.
+// Store the magnitude with saturation so a very large value is still treated as out of range.
 bool wellFormedInteger(const std::string& s, bool& negative, unsigned long long& mag) {
   if (s.empty()) return false;
   std::size_t i = 0;
@@ -22,7 +22,7 @@ bool wellFormedInteger(const std::string& s, bool& negative, unsigned long long&
     negative = s[0] == '-';
     i = 1;
   }
-  if (i >= s.size()) return false;               // "+" or "-" alone is not a number
+  if (i >= s.size()) return false;               // A sign without digits is not a number.
   mag = 0;
   for (; i < s.size(); ++i) {
     if (s[i] < '0' || s[i] > '9') return false;
@@ -42,7 +42,7 @@ int saturateToInt(unsigned long long mag, bool negative) {
   return static_cast<int>(mag);
 }
 
-// Both numeric flags differ only in their bound, field name and spelling, so they share this path.
+// Use the same parsing path for both numeric options.
 void applyValueFlag(CliResult& result, const std::string& flag, const std::string& raw,
                     ClampReport (Parameters::*set)(int)) {
   bool negative = false;
@@ -60,10 +60,10 @@ void applyValueFlag(CliResult& result, const std::string& flag, const std::strin
 }  // namespace
 
 CliResult parseCli(const std::vector<std::string>& args) {
-  CliResult result;                              // params start from the built-in defaults
+  CliResult result;                              // Start with the built-in defaults.
   for (const std::string& token : args) {
     if (token == "--no-tty") {
-      result.params.noTty = true;                // takes no value
+      result.params.noTty = true;                // This option takes no value.
     } else if (token.rfind("--refresh-ms=", 0) == 0) {
       applyValueFlag(result, "--refresh-ms", token.substr(13), &Parameters::setRefresh);
     } else if (token.rfind("--poll-ms=", 0) == 0) {
