@@ -1,6 +1,6 @@
 # CONTRACTS.md — the interface freeze marker
 
-**contracts v3.0 — 2026-09-22**
+**contracts v3.1 — 2026-09-28**
 
 Everything under `include/csopesy/` is an **interface contract**: the declarations the other layers
 compile against, plus the semantics those declarations promise. After this marker a contract changes
@@ -11,7 +11,8 @@ change invalidates a teammate's build on a machine you are not holding.
 **Source of truth:** `docs/IMPLEMENTATION_PLAN_v3.md` §3 (the delta contract), §3.8 (threading), §4.5 (protocol),
 §3.12 + **T0.6** (what this v3.0 change consisted of).
 **History:** `docs/REVIEW_ADJUDICATION.md` records why each earlier revision looks the way it does (rounds 1–7
-cover v1 → v2.6); `docs/PLAN_V3_PROGRESS.md` §4 records the v3.0 decisions D1–D18 with their authorities.
+cover v1 → v2.6); `docs/PLAN_V3_PROGRESS.md` §4 records the v3.x decisions D1–D19 (v3.0: D1–D18; v3.1: D19,
+the authorized `config.txt` default layer).
 
 ## What this freeze covers
 
@@ -28,8 +29,8 @@ are implementation detail; adding them is not a contract change and does not reo
 | `keys.hpp` | 3.3 | `KeyType` / `KeyEvent` — the normalized key vocabulary, i.e. the platform→interpreter boundary |
 | `terminal.hpp` | 3.3 | **The only platform-dependent contract.** `enterRawMode`/`restore`/`size`/`readEvent`/`write`/`flush`/`isTty`/`nowMs` + `Terminal::create()`. **Since v3.0 `nowMs()` is the *only* clock source** — the injected `Clock` is gone (D7) |
 | `shutdown.hpp` | 3.10 | `installShutdownHandlers()` / `shutdownRequested()`; defined once in the selected `src/platform/*`; the flag is read-and-clear, and only by the input thread |
-| `parameters.hpp` | 3.5 | The single `Parameters` struct (7 fields), its ranges (`kRefreshMin`/`kRefreshMax`/`kPollMin`/`kPollMax`), the three-layer precedence defaults → CLI → command, and `TextResult` — the ASCII text contract (D15) |
-| `cli.hpp` | 3.6 | **New in v3.0** (replaces `config_io.hpp`): `parseCli` + `CliResult`. Exactly three flags; bad input warns and is never fatal |
+| `parameters.hpp` | 3.5 | The single `Parameters` struct (7 fields), its ranges (`kRefreshMin`/`kRefreshMax`/`kPollMin`/`kPollMax`), the four-layer precedence built-in defaults → `config.txt` → CLI → command, and `TextResult` — the ASCII text contract (D15) |
+| `cli.hpp` | 3.6 | `parseCli` + `CliResult` + `loadConfigFile`. Exactly three flags plus the optional `config.txt` default layer; bad input warns and is never fatal |
 | `process.hpp` | 3.8 | `MarqueeProcess` (the PCB): `Stopped`/`Running`, `cycles`, `hasRendered`, `start()` / `stop()` |
 | `scheduler.hpp` | 3.8 | The two-thread contract: one mutex, one condition variable, one owner per resource. `tick()` (the pure step), `run()`, `postEvent()`, `wake()`, `requestStop()`, `join()`, `snapshot()`; types `TickResult`, `SchedulerSnapshot` |
 | `renderer.hpp` | 3.9 | Pure scroll math (`scrollOffset`, `sliceRow`), `Renderer::buildFrame` (one complete frame as a single string), `bandWidthFor`, and the fixed `kBandRow` |
@@ -39,6 +40,7 @@ are implementation detail; adding them is not a contract change and does not reo
 
 **Deleted in v3.0 (D1/D2/D6):** `config_io.hpp`, `glyphs.hpp`, `frame_buffer.hpp`. Their replacements are
 `cli.hpp`, nothing (the band is one row of text), and one string per frame inside `renderer.hpp`.
+**Added in v3.1 (D19):** the optional `config.txt` default layer inside `cli.hpp` — see below.
 
 ## Deliberately deferred (unchanged from v2.6)
 
@@ -72,6 +74,22 @@ quiet rewrite of something else — exactly the kind of proof the freeze exists 
 §3.11 snippet omits, so the header compiles standalone. Two added includes; no signature changed. Noted in the
 header itself at T0.1, and unchanged since.
 
+## Re-frozen in v3.1
+
+The change was authorized by the operator on 2026-09-28 as an explicit requirements change (**D19**),
+superseding D1's "no config file" assumption, and lands with the header change so the marker and code agree:
+
+- **`cli.hpp`** — adds `CliResult loadConfigFile(const std::string& path)` and a `configPath` parameter on
+  `parseCli` (default `"config.txt"`). `config.txt` is the layer between the built-in defaults and the CLI
+  flags; it supplies defaults only, flags always win, and a missing file is silent. The format is
+  `key=value`; the recognized keys are `refresh_ms` and `polling_ms`, mapped to `setRefresh`/`setPolling`, so
+  malformed values warn, out-of-range values clamp and report, and unknown keys are ignored — all without
+  aborting startup. The three CLI flags are unchanged and `--config` still does not exist.
+
+Only `cli.hpp`'s blob changed; the other 10 headers still match their recorded hashes (the exact evidence that
+this is the delta claimed). `parameters.hpp`'s **documented precedence** is now four layers, but its declared
+members and methods are unchanged, so no edit was needed there.
+
 ## Change protocol (§4.5, verbatim)
 
 > Contracts change only by: propose in chat → W2 + the affected owner agree → bump the `CONTRACTS.md` marker
@@ -87,7 +105,7 @@ produce a false mismatch:
 
 | Header | Blob hash | v3.0 status |
 | --- | --- | --- |
-| `cli.hpp` | `4d2f3f25bf004f13edb1b57e83dd004f966c20f5` | **new** |
+| `cli.hpp` | `5961a2e58b9fba1c188dca7b0676cfaf01fa320c` | **changed (v3.1 — D19)** |
 | `console_app.hpp` | `af282ac885161be648f2c1e038936cce1e66d584` | unchanged (= v2.6) |
 | `interpreter.hpp` | `bb7d888a59e9a801fa57e380d408fae5f98365ed` | unchanged (= v2.6) |
 | `keys.hpp` | `1f6eeea8a1930ba9b15ea02fa62f29d65e106fa4` | unchanged (= v2.6) |

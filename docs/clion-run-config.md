@@ -11,6 +11,10 @@ unit test can observe raw-mode restoration, a live resize, or a console that isn
 > behind them (`gpt-v12`; plan §5). The rows below stay until someone fills them there.
 > For the PPT's refresh/polling sweep, a *measurement take* sets `--poll-ms=N --refresh-ms=M` in the run
 > configuration and presses Run again — never a rebuild (D14, plan §1.2).
+>
+> **v3.1 update (2026-09-28, D19).** An optional `config.txt` in the working directory may now supply default
+> parameters. That does not change this configuration, which still passes **no** program arguments and has no
+> committed `config.txt`.
 
 ## The two committed configurations
 

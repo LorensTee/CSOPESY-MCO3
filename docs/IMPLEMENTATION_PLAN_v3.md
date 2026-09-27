@@ -16,7 +16,7 @@ the header set went 13 → 11, `CONTRACTS.md`'s marker is **v3.0**, and the guar
 2026-09-23 on 2026-09-22 — D17, `PLAN_V3_PROGRESS.md` §6) · **Supersedes:** `docs/IMPLEMENTATION_PLAN_v2.md`
 (v2.6, 2026-09-16 — kept in place, marked superseded, never edited again).
 
-**What v3 is, in one sentence:** v2.6 with the professor's five answers applied — no config file, no ASCII-art
+**What v3 is, in one sentence:** v2.6 with the professor's five answers applied — the `.ini` config system removed (v3.1 added an optional `config.txt` defaults layer, D19), no ASCII-art
 glyph engine, no `marquee_row`, no `--diag`, no `--measure` telemetry, no `FrameBuffer` diffing and no injected
 clock — and with everything Phase 0 already verified (two threads, FSD layers, the contract freeze, the 3-OS CI
 matrix, the zero-dependency harness) deliberately kept.
@@ -74,7 +74,7 @@ they are recorded here as they appear in `docs/replies/gpt-v11.md`, because the 
 
 | # | Question | Answer | What it changed in v3 |
 | --- | --- | --- | --- |
-| 1 | Does "modify the parameters" mean editing a **parameter file** on the frozen build, or typing parameters **as commands**? | **No `.ini` file is needed.** The quiz uses the already-built program, and parameters are changed through the supported inputs/commands, without modifying or recompiling the source. | `.ini`, `config_io.*`, `--config`, `quiz_case_<n>.ini` and the copy-over runbook step are **removed** (D1) |
+| 1 | Does "modify the parameters" mean editing a **parameter file** on the frozen build, or typing parameters **as commands**? | **No `.ini` file is needed.** The quiz uses the already-built program, and parameters are changed through the supported inputs/commands, without modifying or recompiling the source. | `.ini`, `config_io.*`, `--config`, `quiz_case_<n>.ini` and the copy-over runbook step are **removed** (D1). **Superseded in part 2026-09-28 (D19): an optional `config.txt` defaults file is now permitted; the `.ini`/`--config`/`quiz_case_<n>.ini` system stays removed.** |
 | 2 | Is the marquee expected to be **ASCII-art graphics**, or is plain text scroll sufficient? | **Plain text scroll is sufficient** — the handout allows *"Text marquee or ASCII graphics marquee"*. | The 5×5 glyph engine, `ascii_art` and `--plain`/`--art` are **removed** (D2) |
 | 3 | For *process representation* and *scheduler implementation*: is the expected shape **two threads** — one for the marquee/scheduler, one for the command interpreter? | **Yes** — the professor instructed two threads: one for managing the marquee, one for the command interpreter. | The two-thread design is **kept and is now professor-mandated**; `gpt-v9`/`gpt-v10`'s attempt to cut it is rejected (D8) |
 | 4 | Is the quiz run on your machine or ours, and does the platform matter? | **The professor's Windows machine.** | Windows is the **graded** platform; the graded run config targets Windows; CI keeps the other two compiling (D9, §2) |
@@ -471,8 +471,10 @@ struct Parameters {
 
 **Removed from v2.6:** `asciiArt` (D2), `marqueeRow` (D3), `measurePath` (D4). Ten fields become seven.
 
-**Precedence is now three layers, not four:** runtime command > CLI flag > built-in default. There is no file
-layer (D1). Each layer assigns only what it explicitly provides, exactly as v2 §3.5 defined.
+**Precedence is four layers (D19, contracts v3.1):** runtime command > CLI flag > `config.txt` > built-in
+default. `config.txt` is the optional default-parameter file added 2026-09-28; it assigns only what it
+explicitly provides and CLI flags override it. A missing file preserves the built-in defaults exactly. Each
+layer assigns only what it explicitly provides, exactly as v2 §3.5 defined.
 
 **ASCII invariant (D15), and why it is a correctness contract rather than validation polish.** After `setText`
 accepts a value, `text` contains only bytes in `[0x20, 0x7E]`. `Renderer::sliceRow` and `scrollOffset` are byte-
@@ -492,7 +494,7 @@ because that thread is also the only writer — the rule is *one writer, all cro
 mutex*. `noTty` is the exception that proves the rule: `main` writes it once **before any thread exists** (it
 must be known before raw mode is attempted), and the marquee thread then only reads it.
 
-### 3.6 CLI (changed — full text; the only remaining parameter layer besides the commands)
+### 3.6 CLI + `config.txt` (changed — full text; the parameter layers besides the commands)
 
 ```text
 usage: csopesy [--no-tty] [--refresh-ms=N] [--poll-ms=N]
@@ -506,11 +508,14 @@ usage: csopesy [--no-tty] [--refresh-ms=N] [--poll-ms=N]
 #include "csopesy/parameters.hpp"
 namespace csopesy {
 struct CliResult {
-  Parameters params;                  // defaults + whatever the flags provided
-  std::vector<std::string> warnings;  // one line per unknown flag / malformed value / clamp; NEVER fatal
+  Parameters params;                  // config.txt (or defaults) + whatever the flags provided
+  std::vector<std::string> warnings;  // one line per unknown key/flag / malformed value / clamp; NEVER fatal
 };
+// Reads an optional key=value file; keys refresh_ms / polling_ms map to setRefresh / setPolling.
+CliResult loadConfigFile(const std::string& path);
 // args EXCLUDING argv[0]. Recognized: --no-tty, --refresh-ms=N, --poll-ms=N.
-CliResult parseCli(const std::vector<std::string>& args);
+// configPath defaults to "config.txt" and exists so tests can name an explicit path.
+CliResult parseCli(const std::vector<std::string>& args, const std::string& configPath = "config.txt");
 }
 ```
 
@@ -520,7 +525,7 @@ CliResult parseCli(const std::vector<std::string>& args);
 | `--refresh-ms=N` | `params.setRefresh(N)` → clamped to `[1, 10000]` and reported | malformed/absent `N` ⇒ warning, field keeps its default; out-of-range ⇒ **clamped with a report** (never a usage error) |
 | `--poll-ms=N` | `params.setPolling(N)` → clamped to `[1, 1000]` and reported | same as above |
 
-**Rules (all of them testable, all of them without a file):**
+**Rules (all of them testable):**
 
 1. `--flag=value` is the **only** accepted form. `--refresh-ms 50` is two tokens; the first is a recognized flag
    with no value, the second is unknown — both warn, nothing breaks. Stated because it is exactly the kind of
@@ -529,12 +534,16 @@ CliResult parseCli(const std::vector<std::string>& args);
 3. A repeated flag: **last one wins**, no warning (it is not bad input).
 4. Out-of-range values are *clamped and reported*, matching `set_speed`'s visible clamp: e.g.
    `--refresh-ms=99999 clamped to 10000 ms.` — a well-formed out-of-range number is never a usage error.
-5. **A typo must never cost the quiz** (v2 §3.6's rule, kept): missing file, unknown flag, malformed number and
-   absent value all degrade to defaults plus a warning line. Nothing here can abort startup.
+5. **A typo must never cost the quiz** (v2 §3.6's rule, kept): an absent `config.txt`, an unknown key/flag, a
+   malformed number and an absent value all degrade to the current value plus a warning line. Nothing here can
+   abort startup.
 6. Parsing happens in `main` **before** `Terminal::create()` and before any thread exists, because `noTty` must
    be known before raw mode is attempted.
-7. **No file is read.** There is no `--config`; an old `--config=config/csopesy.ini` therefore produces rule 2's
-   warning and runs on defaults, which is the harmless-and-loud behavior we want during the transition.
+7. **`config.txt` is read from the working directory (D19, contracts v3.1).** It is the layer below the flags:
+   `key=value`, blank lines and lines starting with `#` ignored, keys `refresh_ms`/`polling_ms`, surrounding
+   whitespace trimmed, unknown keys/malformed lines/malformed values warn and are ignored, out-of-range values
+   clamp and report, and a missing file is silent. There is still no `--config`; an old
+   `--config=config/csopesy.ini` therefore produces rule 2's warning and runs on `config.txt`/defaults.
 
 ### 3.7 Command contract (unchanged strings + the ASCII rule)
 
@@ -941,7 +950,7 @@ four are deleted by D2/D3/D6, and v2 §T4.1's two hardcoded assertion values (`"
 | **T2.3** — line editor | `line_editor.cpp` | printable ASCII appends; Backspace deletes; Enter submits; arrows/Tab/control bytes ignored; `visibleSlice` shows the tail so the cursor stays visible | v2 §T2.3, plus §3.11's ASCII-on-entry delta |
 | **T2.4** — interpreter + response table | `interpreter.cpp` | every §3.7 row, including the new non-ASCII rejection; `HELP` is unrecognized; `5abc` is a `Usage:` error; `-5` clamps and reports | v2 §T2.4's body is normative; only the `set_text` outcomes grew (three, not two) |
 | **T2.5** — `main.cpp` + `ConsoleApp` | the graded entry path + `--no-tty` plain line mode | the real-binary **smoke test** (`tests/smoke/`) driving stdin lines in plain line mode; exit code 0; terminal restored | v2 §T2.5's body is normative; `main` now calls `parseCli` instead of loading a file. The plain-line path starts **no worker thread** |
-| **T2.6** — `README.txt` + frozen artifact | member names, run instructions, the **entry file** statement | not a test — a pre-flight read-through against §1.3 | v2 §T2.6, unchanged. The run instructions now describe three flags and **no config file** |
+| **T2.6** — `README.txt` + frozen artifact | member names, run instructions, the **entry file** statement | not a test — a pre-flight read-through against §1.3 | v2 §T2.6, unchanged. The run instructions describe three flags; v3.1 adds the optional `config.txt` defaults file (D19) |
 
 ### Phase 2 — integration and cross-OS verification
 
@@ -998,7 +1007,7 @@ that the handout's *"varying inputs"* wording grades.
 | A6 | `exit` | while animating; with text in the buffer | the goodbye line, terminal restored (no `stty sane` needed), exit code 0, shell prompt returns, **exits promptly** (no join hang) and `ps -T` / Task Manager shows no leftover thread |
 | A7 | Unknown / empty input | `foo`, `HELP`, `start marquee`, whitespace only, `set_speed 100 extra` | `not recognized` / `Usage:` messages, no crash, prompt intact (`HELP` is unrecognized: matching is case-sensitive) |
 | A8 | **Coexistence (stress) — the real-concurrency case** | type a full command **one key at a time** during animation; resize mid-animation; type during a `1 ms` refresh | typing stays responsive; **several marquee updates are observed between the first keystroke and `Enter`** — record the transcript and **state the observed count**, because this is the one case the deterministic suite cannot substitute for; the band is never half-drawn and no frame interleaves or garbles another; the layout follows the new size after a resize |
-| A9 | **Parameter-path parity** (narrowed in v3) | the same effect through a **CLI flag** and through the **runtime command**, on the **frozen** binary: `--refresh-ms=50` vs `set_speed 50` | identical observable behavior (same band rate). `pollingMs` has only the flag; `text` has only the command. **v2's config-file path is gone (D1), so this hedge is two paths, not three** — a deliberate narrowing, recorded rather than glossed |
+| A9 | **Parameter-path parity** (narrowed in v3) | the same effect through a **CLI flag** and through the **runtime command**, on the **frozen** binary: `--refresh-ms=50` vs `set_speed 50` | identical observable behavior (same band rate). `pollingMs` has only the flag; `text` has only the command. **v2's `.ini`/`--config` path is gone (D1). Since v3.1 (D19) an optional `config.txt` supplies defaults, but A9's parity evidence stays flag + command because a file cannot show runtime behavior** — recorded rather than glossed |
 | A10 | Extremes | `refresh_ms = 1` and `10000`; `polling_ms = 1` and `1000` | no input loss, no crash, stays responsive. Idle CPU and Ctrl+C latency are **observations** for the PPT, not pass/fail criteria |
 | A11 | **Tiny terminal** (new in v3) | resize to about 20×5 and back | the band row and the prompt row both survive; no line wraps; no crash; the layout recovers on resize back |
 | A12 | **Plain line mode** (new in v3; dev/CI only, D13) | drive stdin lines: `help`, `set_text`, `set_speed`, `start_marquee`, `stop_marquee`, `exit` | plain responses, no ANSI, no frames, **no worker thread started**, exit 0. This is the CI smoke test's case; it is **not** part of the graded run |
@@ -1110,7 +1119,7 @@ answers instead of hedges, and each answer is traced to what it changed.
 
 | # | Question | Answer | Changes |
 | --- | --- | --- | --- |
-| 1 | Does "modify the parameters" mean editing a **parameter file** on the frozen build, or typing parameters **as commands**? | **No `.ini` file is needed** — parameters are changed through the supported inputs/commands, without modifying or recompiling the source | D1: the config layer, `--config`, `quiz_case_<n>.ini` and §7's copy step are gone. A9 narrowed to two paths |
+| 1 | Does "modify the parameters" mean editing a **parameter file** on the frozen build, or typing parameters **as commands**? | **No `.ini` file is needed** — parameters are changed through the supported inputs/commands, without modifying or recompiling the source | D1: the config layer, `--config`, `quiz_case_<n>.ini` and §7's copy step are gone. A9 narrowed to two paths. **Superseded in part 2026-09-28 (D19): an optional `config.txt` defaults file is now permitted; `--config`/`quiz_case_<n>.ini` stay gone.** |
 | 2 | ASCII-art graphics, or is plain text scroll sufficient? | **Plain text scroll is sufficient** (the handout allows either) | D2: the 5×5 glyph engine, `ascii_art` and `--plain` are gone; W4's budget drops 11 h → 7 h |
 | 3 | Is two threads — one for the marquee/scheduler, one for the command interpreter — the expected shape? | **Yes**, the professor instructed exactly that | D8: the two-thread design is **kept and is now mandated**; `gpt-v9`/`gpt-v10`'s attempt to cut it is rejected; A8 and §3.8 answer *process representation* + *scheduler implementation* for the PPT |
 | 4 | Is the quiz run on your machine or ours, and does the platform matter? | **The professor's Windows machine** | §2: Windows is the graded platform; the graded run config targets Windows; CI keeps the other two compiling |
@@ -1185,7 +1194,8 @@ not as a step to tick off in this file.
    copies to keep in sync.
 3. **A9 narrows v2's three-path partial-credit hedge to two paths.** The professor's answer #1 removed the file
    path as a requirement. Recorded as a narrowing, with the alternative (keeping a config layer purely as
-   insurance) explicitly declined.
+   insurance) explicitly declined — *since partly reversed by D19 (2026-09-28), which adds an optional
+   `config.txt` defaults layer; A9's evidence remains flag + command.*
 4. **T0.5's live gate moves to T3.4** rather than staying in Phase 0, because no part of it can be observed
    before features exist and its `--config` steps are deleted anyway.
 5. **The `help`/`exit` clarification** (gpt-v14) is applied as §6.2's preamble and §7's runbook line, so no
@@ -1194,14 +1204,15 @@ not as a step to tick off in this file.
 ### 10.5 Explicitly out of scope
 
 P2 extras (the pty replay harness, further platform polish); a thread per marquee process (explicitly not
-planned at any scope); reviving the config layer, the glyph table, `FrameBuffer` diffing, `--diag` or
-`--measure`; and beyond-CI macOS verification. **Never**: anything the professor specified.
+planned at any scope); the glyph table, `FrameBuffer` diffing, `--diag` or `--measure` (the `.ini`/`--config`
+system stays deleted; only the optional `config.txt` defaults layer is in scope, D19); and beyond-CI macOS
+verification. **Never**: anything the professor specified.
 
 ### 10.6 Revision log (v2.6 → v3.0)
 
 | Area | v2.6 | v3.0 | Authority |
 | --- | --- | --- | --- |
-| Config | `.ini` + `--config` + `quiz_case_<n>.ini` + 4-layer precedence | **removed**; 3-layer precedence (command > flag > default) | answer #1, D1 |
+| Config | `.ini` + `--config` + `quiz_case_<n>.ini` | **`.ini` system removed**; since v3.1 an optional `config.txt` supplies defaults (4-layer: command > flag > config.txt > default) | answer #1, D1; **partly superseded by D19, 2026-09-28** |
 | Marquee | 5×5 glyph engine + `ascii_art` + `--plain` | **plain text, one row**; ASCII-only input contract | answer #2, handout p.2, D2/D15 |
 | Band position | `marquee_row` (config/CLI knob) | `kBandRow = 3`, fixed | answer #5, D3 |
 | Measurement | `--measure=FILE` + CSV + scripts + coalescing rules | **manual sweep** with a frozen-binary workflow; the PPT requirement kept | D4, D14 |
@@ -1216,6 +1227,9 @@ planned at any scope); reviving the config layer, the glyph table, `FrameBuffer`
 | A11/A12 | — | tiny terminal; plain-line mode | §6.2 |
 | Risks | 28 | 24 live + 6 closed with reasons + 2 new | §8 |
 | Deadline | Wed 2026-09-23 | **Mon 2026-09-28** | D17 |
+
+**v3.1 addendum (2026-09-28, D19):** `config.txt` returns as an optional, defaults-only file — not the deleted
+`.ini` + `--config` system. `cli.hpp` is the only changed header; the marker is **contracts v3.1**.
 
 ### 10.7 Review-round dispositions (`gpt-v9`…`gpt-v14`)
 

@@ -15,18 +15,20 @@ features exist. `include/csopesy/*.hpp` are the **v3.0** frozen contracts. Of Ph
 `src/**` files are still `TODO` stubs, so do not assume a task is done because the file exists — check
 `docs/IMPLEMENTATION_PLAN_v3.md` §5 for the phase it belongs to.
 
-**Contracts v3.0 landed 2026-09-22 (task T0.6, ratified by W2 per §4.5).** The tree now matches the v3 plan:
-no config layer, a plain-text (ASCII) marquee, no `marquee_row`, no `--diag`, no `--measure`, no `FrameBuffer`
-diffing, and no injected `Clock` — while keeping the professor-mandated two threads, the FSD layers, the
-contract freeze and the 3-OS CI matrix. `CONTRACTS.md` is the v3.0 marker. Read
-`docs/PLAN_V3_PROGRESS.md` for the decision list (D1–D18) and the current state.
+**Contracts are at v3.1 (2026-09-28, D19) after v3.0 landed 2026-09-22 (task T0.6).** The tree matches the v3
+plan: a plain-text (ASCII) marquee, no `marquee_row`, no `--diag`, no `--measure`, no `FrameBuffer` diffing,
+and no injected `Clock` — while keeping the professor-mandated two threads, the FSD layers, the contract
+freeze and the 3-OS CI matrix. v3.1 adds the optional `config.txt` default-parameter layer (D19), superseding
+the old "no config file" assumption. `CONTRACTS.md` is the v3.1 marker. Read `docs/PLAN_V3_PROGRESS.md` for the
+decision list (D1–D19) and the current state.
 
 **The v3 plan is in force (added 2026-09-22).** `docs/IMPLEMENTATION_PLAN_v3.md` simplifies the plan after the
-professor's answers: no `.ini`/config layer, a plain-text (ASCII) marquee instead of the 5×5 glyph engine, no
+professor's answers: no `.ini` config system (v3.1 later added the optional `config.txt` defaults layer, D19),
+a plain-text (ASCII) marquee instead of the 5×5 glyph engine, no
 `marquee_row`, no `--diag`, no `--measure`, no `FrameBuffer` diffing, and no injected `Clock` — while keeping
 the professor-mandated two threads, the FSD layers, the contract freeze and the 3-OS CI matrix. The header
 change landed as **T0.6** (see above), so `docs/IMPLEMENTATION_PLAN_v2.md` is now **frozen history**, not a
-second live plan. Read `docs/PLAN_V3_PROGRESS.md` for the current state, the decision list (D1–D18) and the
+second live plan. Read `docs/PLAN_V3_PROGRESS.md` for the current state, the decision list (D1–D19) and the
 agreed sequence.
 
 ## 1. Sources of truth (read before you write)
@@ -133,11 +135,14 @@ contract change; re-running a tool is not an exemption.
   trim the argument's outer whitespace but preserve internal runs verbatim; `set_speed`'s argument must match
   `[-+]?[0-9]+` in full (so `5abc` is a `Usage:` error, never a silent partial parse via `std::stoi`); a
   well-formed out-of-range value (including `-5`) is **clamped and reported**, not a usage error.
-- **Precedence** is defaults → CLI flags → runtime commands (three layers since v3.0; the config-file layer is
-  gone, D1). Bad input **warns and keeps going** — a typo must not cost the quiz.
-- **There is no config file.** `config/csopesy.ini` and `config/quiz_case_<n>.ini` no longer exist and the
-  graded run config passes **no** program arguments; the parameter surface is the six commands plus three flags
-  (`--no-tty` dev/CI-only, `--refresh-ms=N`, `--poll-ms=N`).
+- **Precedence** is built-in defaults → `config.txt` → CLI flags → runtime commands (four layers since v3.1,
+  D19). `config.txt` is optional, supplies defaults only, and CLI flags always override it. Bad input **warns
+  and keeps going** — a typo must not cost the quiz.
+- **`config.txt` is the only config file.** It is optional, read from the working directory, uses `key=value`
+  (`refresh_ms`, `polling_ms`), ignores blank lines and `#` comments, and warns on unknown/malformed input
+  without aborting. The old `.ini` system (`config/csopesy.ini`, `config/quiz_case_<n>.ini`, `--config`) stays
+  removed; the graded run config passes **no** program arguments and the parameter surface is the six commands
+  plus three flags (`--no-tty` dev/CI-only, `--refresh-ms=N`, `--poll-ms=N`).
 - `--no-tty` means plain line mode: no raw mode, no ANSI, no animation, **no worker thread** — it is what makes
   the real-binary smoke test portable across the three CI OS images. **Dev/CI only** (D13): never the graded run.
 - **`--diag` and `--measure` are gone (v3.0).** A Windows VT-enable failure is now a **loud startup error**

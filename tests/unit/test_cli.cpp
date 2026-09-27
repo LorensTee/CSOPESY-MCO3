@@ -1,16 +1,22 @@
-// tests/unit/test_cli.cpp — T2.2: the three-flag parser. A typo must never cost the quiz, so every failure
-// mode warns and continues; only a well-formed out-of-range value is clamped and reported.
+// tests/unit/test_cli.cpp — T2.2: the three-flag parser, plus the optional config.txt default layer.
+// A typo must never cost the quiz, so every failure mode warns and continues; only a well-formed out-of-range
+// value is clamped and reported. config.txt sits below the flags: it supplies defaults, the flags override it.
 #include "check.hpp"
 #include "csopesy/cli.hpp"
 
+#include <cstdio>
+#include <cstdlib>
+#include <fstream>
 #include <string>
 #include <vector>
 
 using csopesy::CliResult;
+using csopesy::loadConfigFile;
 using csopesy::parseCli;
 
 namespace {
-CliResult run(std::vector<std::string> args) { return parseCli(args); }
+// Existing flag tests pass an explicit non-existent path so a developer's real config.txt cannot perturb them.
+CliResult run(std::vector<std::string> args) { return parseCli(args, ""); }
 bool hasWarning(const CliResult& r, const std::string& needle) {
   for (const auto& w : r.warnings) if (w.find(needle) != std::string::npos) return true;
   return false;
@@ -20,6 +26,34 @@ bool hasWarning(const CliResult& r, const std::string& needle) {
 std::string warningAt(const CliResult& r, std::size_t i) {
   return i < r.warnings.size() ? r.warnings[i] : std::string("<no such warning>");
 }
+
+// Writes a unique temp file with `contents` and removes it on destruction, so config tests never touch the
+// working directory or depend on a real config.txt.
+std::string newTempConfigPath() {
+  const char* dir = std::getenv("TMPDIR");
+#ifdef _WIN32
+  if (dir == nullptr || *dir == '\0') dir = std::getenv("TEMP");
+  if (dir == nullptr || *dir == '\0') dir = std::getenv("TMP");
+#endif
+  if (dir == nullptr || *dir == '\0') dir = ".";
+  static int counter = 0;
+  return std::string(dir) + "/csopesy_cli_config_" + std::to_string(++counter) + ".txt";
+}
+
+class TempConfig {
+ public:
+  explicit TempConfig(const std::string& contents) : path_(newTempConfigPath()) {
+    std::ofstream out(path_.c_str(), std::ios::binary | std::ios::trunc);
+    out.write(contents.data(), static_cast<std::streamsize>(contents.size()));
+  }
+  ~TempConfig() { std::remove(path_.c_str()); }
+  TempConfig(const TempConfig&) = delete;
+  TempConfig& operator=(const TempConfig&) = delete;
+  std::string path() const { return path_; }
+
+ private:
+  std::string path_;
+};
 }  // namespace
 
 TEST(no_args_yields_defaults_and_no_warnings) {
@@ -165,4 +199,93 @@ TEST(repeated_flag_last_value_wins_without_warning) {
   const CliResult r = run({"--refresh-ms=100", "--refresh-ms=250"});
   CHECK_EQ(r.params.refreshMs, 250);
   CHECK_EQ(r.warnings.size(), size_t{0});            // a repeat is not bad input
+}
+
+// --- config.txt: the default layer below the flags ---------------------------------------------------
+
+TEST(missing_config_file_keeps_defaults_and_is_not_an_error) {
+  const CliResult r = loadConfigFile("definitely/not/a/real/config.txt");
+  CHECK_EQ(r.params.refreshMs, 100);
+  CHECK_EQ(r.params.pollingMs, 10);
+  CHECK_EQ(r.warnings.size(), size_t{0});
+}
+
+TEST(valid_config_loads_the_requested_values) {
+  TempConfig cfg("refresh_ms=250\npolling_ms=25\n");
+  const CliResult r = loadConfigFile(cfg.path());
+  CHECK_EQ(r.params.refreshMs, 250);
+  CHECK_EQ(r.params.pollingMs, 25);
+  CHECK_EQ(r.warnings.size(), size_t{0});
+}
+
+TEST(config_ignores_comments_blank_lines_and_surrounding_whitespace) {
+  TempConfig cfg("# CSOPESY default configuration\n"
+                 "\n"
+                 "  refresh_ms  =  200  \n"
+                 "   # indented comment\n"
+                 "\tpolling_ms\t=\t20\t\n");
+  const CliResult r = loadConfigFile(cfg.path());
+  CHECK_EQ(r.params.refreshMs, 200);
+  CHECK_EQ(r.params.pollingMs, 20);
+  CHECK_EQ(r.warnings.size(), size_t{0});
+}
+
+TEST(config_malformed_value_warns_and_keeps_default) {
+  TempConfig cfg("refresh_ms=abc\n");
+  const CliResult r = loadConfigFile(cfg.path());
+  CHECK_EQ(r.params.refreshMs, 100);
+  CHECK_EQ(r.warnings.size(), size_t{1});
+  CHECK(hasWarning(r, "not a number"));
+}
+
+TEST(config_partial_number_is_not_accepted) {
+  TempConfig cfg("refresh_ms=5abc\n");               // std::stoi would silently accept 5
+  const CliResult r = loadConfigFile(cfg.path());
+  CHECK_EQ(r.params.refreshMs, 100);
+  CHECK(hasWarning(r, "not a number"));
+}
+
+TEST(config_out_of_range_value_is_clamped_and_reported) {
+  TempConfig cfg("polling_ms=2000\n");
+  const CliResult r = loadConfigFile(cfg.path());
+  CHECK_EQ(r.params.pollingMs, 1000);
+  CHECK_EQ(r.warnings.size(), size_t{1});
+  CHECK(hasWarning(r, "clamped to 1000 ms"));
+}
+
+TEST(config_unknown_key_warns_and_is_ignored) {
+  TempConfig cfg("marquee_row=3\n");
+  const CliResult r = loadConfigFile(cfg.path());
+  CHECK_EQ(r.params.refreshMs, 100);
+  CHECK_EQ(r.params.pollingMs, 10);
+  CHECK_EQ(r.warnings.size(), size_t{1});
+  CHECK(hasWarning(r, "unknown key"));
+}
+
+TEST(config_malformed_line_warns_and_is_ignored) {
+  TempConfig cfg("this is not a pair\n");
+  const CliResult r = loadConfigFile(cfg.path());
+  CHECK_EQ(r.params.refreshMs, 100);
+  CHECK(hasWarning(r, "malformed line"));
+}
+
+TEST(cli_flag_overrides_the_config_value) {
+  TempConfig cfg("refresh_ms=100\npolling_ms=50\n");
+  const CliResult r = parseCli({"--refresh-ms=40"}, cfg.path());
+  CHECK_EQ(r.params.refreshMs, 40);                  // the flag wins
+  CHECK_EQ(r.params.pollingMs, 50);                  // config still supplies the field the flag omitted
+  CHECK_EQ(r.warnings.size(), size_t{0});
+}
+
+TEST(config_value_applies_when_no_flag_is_given) {
+  TempConfig cfg("refresh_ms=250\n");
+  const CliResult r = parseCli({}, cfg.path());
+  CHECK_EQ(r.params.refreshMs, 250);
+}
+
+TEST(parse_cli_without_a_config_file_preserves_defaults) {
+  const CliResult r = parseCli({}, "definitely/not/a/real/config.txt");
+  CHECK_EQ(r.params.refreshMs, 100);
+  CHECK_EQ(r.params.pollingMs, 10);
+  CHECK_EQ(r.warnings.size(), size_t{0});
 }

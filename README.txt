@@ -13,7 +13,7 @@ Entry file
   src/main.cpp                      function main()
   src/app/console_app.cpp           class csopesy::ConsoleApp  (owns the run loop)
 
-Build (no config file; needs a C++17 compiler, CMake 3.21+ and Ninja — the presets below pin the Ninja generator)
+Build (needs a C++17 compiler, CMake 3.21+ and Ninja — the presets below pin the Ninja generator)
 -----------------------------------------------------------------------------------------------------------------
   POSIX (Linux / macOS):
       cmake --preset debug
@@ -36,15 +36,22 @@ Run
   Plain line mode (no raw mode, no ANSI, no animation, no worker thread; dev/CI only):
       csopesy --no-tty
 
-Program arguments (there is NO config file)
--------------------------------------------
+Default parameters file (optional)
+----------------------------------
+  config.txt in the working directory supplies defaults; if it is absent, the built-in defaults
+  below are used unchanged. One `key=value` per line; blank lines and lines starting with `#`
+  are ignored. Recognized keys: refresh_ms, polling_ms. Unknown keys and malformed values warn
+  and are ignored; out-of-range values are clamped and reported.
+
+Program arguments
+-----------------
   --no-tty            plain line mode; dev/CI only, never used in the graded run
   --refresh-ms=N      marquee refresh in ms; clamped to [1, 10000] and reported
   --poll-ms=N         max idle wait in ms;   clamped to [1, 1000]  and reported
 
   `--flag=value` is the only accepted form. An unknown flag or a malformed value prints a
-  warning and keeps the default: a typo never aborts startup. Precedence is
-  runtime command > CLI flag > built-in default.
+  warning and keeps the current value: a typo never aborts startup. Precedence is
+  runtime command > CLI flag > config.txt > built-in default.
 
 Runtime commands (case-sensitive; type `help` for the same list)
 ----------------------------------------------------------------
