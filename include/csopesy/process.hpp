@@ -1,17 +1,32 @@
-// include/csopesy/process.hpp — §3.8.
+// include/csopesy/process.hpp — marquee process state.
 #pragma once
 #include <string>
 namespace csopesy {
-enum class ProcessState { Stopped, Running };   // Ready/Finished are unused: v1 kept them as decoration
 
-struct MarqueeProcess {                 // PCB
+enum class ProcessState {
+  Stopped,
+  Running
+};
+
+struct MarqueeProcess {
   int pid = 1;
   std::string name = "marquee";
   ProcessState state = ProcessState::Stopped;
-  long long cycles = 0;                 // rendered frames == "instructions executed"
+
+  // Number of rendered marquee frames.
+  long long cycles = 0;
+
+  // Time of the last rendered frame.
   long long lastRenderMs = 0;
-  bool hasRendered = false;             // false => the next tick draws immediately (fresh OR restarted)
-  bool start();                         // false if already Running; clears hasRendered
-  bool stop();                          // false if already Stopped
+
+  // False until the next frame is rendered after start() or restart.
+  bool hasRendered = false;
+
+  // Start the process. Return false when it is already running.
+  bool start();
+
+  // Stop the process. Return false when it is already stopped.
+  bool stop();
 };
+
 }
