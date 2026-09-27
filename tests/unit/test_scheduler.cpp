@@ -5,15 +5,18 @@
 // clock is the double's atomic field. No real-time sleep primitive appears anywhere — a sleep here would be a
 // flake, not a synchronization.
 //
-// SCOPE: this suite pins only what the scheduler owns. Terminal::write() is observable only once
-// Renderer::buildFrame returns a real frame (T4.2), and a command's effect only once Interpreter::feed works
-// (T2.4), so those assertions are deliberately absent rather than faked; the list to add when those land is in
-// docs/PLAN_V3_PROGRESS.md §6. Pinned here: cycles, hasRendered/lastRenderMs, snapshot(), pollTimeoutMs(),
-// TickResult, stop_ + join, and the tick barrier (tick() calls Terminal::size() once, as its first action).
+// SCOPE: this suite pins what the scheduler owns. Two groups of assertions were unobservable until their
+// dependencies existed — Terminal::write() does nothing until Renderer::buildFrame (T4.2) returns a real
+// frame, and a command has no effect until Interpreter::feed (T2.4) executes it — so they sit at the end:
+// exactly one writer (the worker), exactly one whole frame per write(), a keystroke's echo ungated by
+// refreshMs, and a posted command's effect visible in the next frame. Pinned from the start: cycles,
+// hasRendered/lastRenderMs, snapshot(), pollTimeoutMs(), TickResult, stop_ + join, and the tick barrier
+// (tick() calls Terminal::size() once, as its first action).
 #include <atomic>
 #include <cstddef>
 #include <string>
 #include <thread>
+#include <vector>
 #include "check.hpp"
 #include "fake_terminal.hpp"
 #include "csopesy/interpreter.hpp"
@@ -37,6 +40,24 @@ constexpr int kHangGuardMs = 5000;   // a hang guard for a lost notify / missing
 void drainInput(FakeTerminal& t, Scheduler& s) {
   KeyEvent ev;
   while (t.readEvent(ev, 0)) { s.postEvent(ev); }
+}
+
+// Type a whole line down the same path: one postEvent per keystroke, then Enter. Nothing here reaches the
+// interpreter except through the production input entry point, which is the point of the command-effect tests.
+void typeCommand(Scheduler& s, const std::string& line) {
+  for (const char c : line) { s.postEvent(KeyEvent{KeyType::Char, c}); }
+  s.postEvent(KeyEvent{KeyType::Enter, 0});
+}
+
+// Split a frame back into rows on its CRLF separators, so a test can tell one whole frame from a fragment or
+// from two concatenated frames.
+std::vector<std::string> splitFrame(const std::string& frame) {
+  std::vector<std::string> rows(1);
+  for (std::size_t i = 0; i < frame.size(); ++i) {
+    if (frame[i] == '\r' && i + 1 < frame.size() && frame[i + 1] == '\n') { rows.emplace_back(); ++i; }
+    else { rows.back().push_back(frame[i]); }
+  }
+  return rows;
 }
 }  // namespace
 
@@ -326,4 +347,135 @@ TEST(threaded_input_thread_and_animation_overlap_in_real_time) {
   CHECK(posted.load() > 0);                             // input really was processed, not merely queued
   CHECK_EQ(h.sched.snapshot().cycles, 2);               // the clock never moved again: no extra frames
   CHECK(!h.sched.joinable());
+}
+
+// ---------------------------------------------------------------------------------------------------------
+// The frame writes (T4.2) and the input thread's command path (T2.4).
+// ---------------------------------------------------------------------------------------------------------
+
+TEST(every_write_carries_exactly_one_whole_frame) {
+  Harness h;
+  h.proc.state = ProcessState::Running;
+  h.params.refreshMs = 100;
+  h.term.clock = 0;    (void)h.sched.tick(nullptr);          // deadline frame 1
+  h.sched.postEvent(KeyEvent{KeyType::Char, 'a'});
+  h.term.clock = 5;    (void)h.sched.tick(nullptr);          // echo frame: owed by dirty_, not by a deadline
+  h.term.clock = 100;  (void)h.sched.tick(nullptr);          // deadline frame 2
+
+  const std::vector<std::string> writes = h.term.writesCopy();
+  CHECK_EQ(writes.size(), size_t{3});
+  CHECK_EQ(h.term.frameCount(), writes.size());              // one write() per frame, never a partial one
+  std::size_t total = 0;
+  for (const std::string& w : writes) {
+    CHECK(w.rfind("\x1b[H", 0) == 0);                       // every write opens at the home cell...
+    const std::vector<std::string> rows = splitFrame(w.substr(3));
+    CHECK_EQ(rows.size(), size_t{24});                       // ...carries every row of one frame...
+    for (const std::string& row : rows) { CHECK_EQ(row.size(), size_t{80}); }   // ...each exactly cols wide
+    total += w.size();
+  }
+  CHECK_EQ(h.term.outCopy().size(), total);                  // nothing reached the terminal outside write()
+}
+
+TEST(posted_keystroke_echo_is_written_without_waiting_for_the_refresh_deadline) {
+  Harness h;
+  h.proc.state = ProcessState::Running;
+  h.params.refreshMs = 10000;                                // far beyond any echo a human would call prompt
+  h.term.clock = 0;
+  CHECK(h.sched.tick(nullptr).rendered);
+  CHECK_EQ(h.term.frameCount(), size_t{1});
+
+  h.term.clock = 5;                                          // 5 << 10000: no render deadline is due
+  h.sched.postEvent(KeyEvent{KeyType::Char, 'a'});
+  CHECK(!h.sched.tick(nullptr).rendered);                    // the echo is not a RENDERED frame...
+  CHECK_EQ(h.proc.cycles, 1);                                // ...cycles counts only deadline frames...
+  CHECK_EQ(h.term.frameCount(), size_t{2});                  // ...but a frame WAS written, on dirty_
+
+  h.term.clock = 6;
+  CHECK(!h.sched.tick(nullptr).rendered);
+  CHECK_EQ(h.term.frameCount(), size_t{2});                  // the redraw is consumed once, not re-emitted
+}
+
+TEST(only_the_marquee_thread_ever_writes_the_terminal) {
+  Harness h;
+  h.params.refreshMs = 1;
+  h.params.pollingMs = 1;
+  CHECK(h.proc.start());
+  h.sched.start();
+  CHECK(h.term.waitForTickStarted(2, kHangGuardMs));
+
+  // Drive the input path from THIS thread — the one ConsoleApp::run() uses. It feeds the interpreter and
+  // posts events, and must never touch the terminal.
+  h.term.push(KeyEvent{KeyType::Char, 'a'});
+  drainInput(h.term, h.sched);
+  typeCommand(h.sched, "help");
+  h.term.clock = 5;                                          // past the 1 ms deadline: at least one more frame
+  const size_t t = h.term.tickCount();
+  CHECK(h.term.waitForTickStarted(t + 2, kHangGuardMs));
+  h.sched.requestStop();
+  h.sched.join();
+
+  const std::vector<std::thread::id> writers = h.term.writersCopy();
+  CHECK(!writers.empty());
+  if (!writers.empty()) {                                   // guarded: a stub writer list must red, not abort
+    const std::thread::id worker = writers.front();
+    CHECK(worker != std::this_thread::get_id());             // the input thread never wrote a frame
+    for (const std::thread::id& id : writers) { CHECK(id == worker); }   // exactly ONE writer: the worker
+  }
+  CHECK_EQ(h.term.frameCount(), writers.size());
+}
+
+TEST(posted_stop_marquee_command_stops_the_process) {
+  Harness h;
+  CHECK(h.proc.start());
+  CHECK(h.proc.state == ProcessState::Running);
+  typeCommand(h.sched, "stop_marquee");
+  CHECK(h.proc.state == ProcessState::Stopped);
+  CHECK_STR(h.interp.lastMessage(), "Marquee stopped.");
+}
+
+TEST(posted_set_text_command_changes_the_animated_text) {
+  Harness h;
+  h.proc.state = ProcessState::Running;
+  typeCommand(h.sched, "set_text HELLO WORLD");
+  CHECK_STR(h.params.text, "HELLO WORLD");                   // trimmed, internal space run preserved
+  CHECK(h.interp.lastMessage().find("HELLO WORLD") != std::string::npos);
+
+  // offset == bandWidth puts text[0] in the band's first column, so the new text is visible in this frame.
+  h.proc.cycles = Renderer::bandWidthFor(80);
+  h.term.clock = 0;
+  (void)h.sched.tick(nullptr);
+  CHECK(h.term.outCopy().find("HELLO WORLD") != std::string::npos);
+}
+
+TEST(posted_set_speed_command_moves_the_next_render_deadline) {
+  Harness h;
+  h.proc.state = ProcessState::Running;
+  h.params.refreshMs = 1000;
+  h.term.clock = 0;
+  CHECK(h.sched.tick(nullptr).rendered);                     // the immediate frame; the deadline is now 1000
+  CHECK_EQ(h.proc.cycles, 1);
+
+  typeCommand(h.sched, "set_speed 50");                      // the COMMAND, not the field the pure test sets
+  CHECK_EQ(h.params.refreshMs, 50);
+  CHECK_STR(h.interp.lastMessage(), "Marquee speed set to 50 ms.");
+
+  h.term.clock = 40;
+  CHECK(!h.sched.tick(nullptr).rendered);                    // 40 < 50: the new deadline is in force...
+  h.term.clock = 60;
+  CHECK(h.sched.tick(nullptr).rendered);                     // ...and 60 < 1000, so only the command moved it
+  CHECK_EQ(h.proc.cycles, 2);
+}
+
+TEST(posted_exit_command_requests_quit_and_leaves_the_worker_alone) {
+  Harness h;
+  h.proc.state = ProcessState::Running;
+  h.params.refreshMs = 100;
+  typeCommand(h.sched, "exit");
+  CHECK(h.interp.quitRequested());
+  CHECK_STR(h.interp.lastMessage(), "Exiting CSOPESY. Goodbye!");
+  // quit_ belongs to the input thread: only stop_ ends the worker's loop, so the marquee keeps rendering
+  // and shutdown is ConsoleApp's requestStop() -> join(), not the worker reading quit_ (§3.8).
+  h.term.clock = 200;
+  CHECK(h.sched.tick(nullptr).rendered);
+  CHECK(h.proc.state == ProcessState::Running);
 }
