@@ -1,8 +1,8 @@
-// src/features/marquee/renderer.cpp — the plain-text marquee: scroll math + frame assembly (§3.9).
+// src/features/marquee/renderer.cpp — marquee scroll math and frame assembly.
 //
-// One frame is ONE string, built fresh every time and handed to Terminal::write(). There is no FrameBuffer and
-// no diffing: a resize needs no invalidation flag, only the next frame, because the caller's rows/cols are the
-// frame's rows/cols.
+// Each frame is one string. The renderer builds the whole frame for the current terminal size.
+// A resize therefore needs no separate invalidation step.
+
 #include "csopesy/renderer.hpp"
 
 #include <cstddef>
@@ -12,8 +12,8 @@
 namespace csopesy {
 namespace {
 
-// The frame opens at the home cell. Raw mode clears ONLCR on POSIX and Windows sets
-// DISABLE_NEWLINE_AUTO_RETURN, so the renderer owns its carriage returns: rows are separated by CRLF.
+// Start each frame at the home cell. Raw mode disables newline translation, so the renderer
+// uses CRLF between rows.
 constexpr char kCursorHome[] = "\x1b[H";
 constexpr char kRowSeparator[] = "\r\n";
 constexpr char kEraseToEol[] = "\x1b[K";
@@ -40,12 +40,10 @@ std::vector<std::string> splitLines(const std::string& text) {
   return lines;
 }
 
-// The prompt row shows the TAIL of the buffer so the cursor stays visible on one fixed row (§3.11). Copying
-// that rule here is deliberate: visibleSlice lives in the commands slice, and features/ may not cross-import,
-// so the marquee owns the window it draws.
+// Show the tail of the input buffer so the cursor stays visible on one row.
 //
-// The prompt row is the frame's LAST row, so it is sized to `cols - 1`: buildFrame leaves the terminal's
-// bottom-right cell unwritten, and the window must fit in the columns that remain visible.
+// The prompt is the last frame row. Leave one column unused so the terminal never writes
+// to its bottom-right cell.
 std::string buildPromptRow(const std::string& prompt, const std::string& buffer, int cols) {
   const int width = cols > 1 ? cols - 1 : 0;
   const int available = width - static_cast<int>(prompt.size()) - 1;
@@ -61,15 +59,16 @@ std::string buildPromptRow(const std::string& prompt, const std::string& buffer,
 
 int scrollOffset(long long cycles, int textWidth, int bandWidth) {
   const long long period = static_cast<long long>(textWidth) + bandWidth;
-  if (period <= 0) return 0;   // empty text in an empty band: there is nothing to move
+  if (period <= 0) return 0;   // No text or band width means there is nothing to move.
   const long long wrapped = cycles % period;
   return static_cast<int>(wrapped < 0 ? wrapped + period : wrapped);
 }
 
 std::string sliceRow(std::string_view text, int bandWidth, int offset) {
   if (bandWidth <= 0) return {};
-  // offset is the band's left edge in text coordinates shifted by one band width, so offset == 0 is one whole
-  // band past the text's right edge (a blank band) and offset == bandWidth lands text[0] in column 0.
+
+  // offset is the text position shifted by one band width.
+  // offset == 0 shows a blank band; offset == bandWidth shows text[0] in column 0.
   const int windowLeft = offset - bandWidth;
   const int textWidth = static_cast<int>(text.size());
   std::string row;
@@ -90,12 +89,11 @@ std::string Renderer::buildFrame(const Parameters& params, const MarqueeProcess&
   const int offset = scrollOffset(proc.cycles, static_cast<int>(params.text.size()), bandWidth);
   const std::string band = sliceRow(params.text, bandWidth, offset);
 
-  // The band is pinned at kBandRow while the terminal is tall enough; a shorter terminal keeps it directly
-  // above the message/prompt block instead of dropping it, because a missing band fails the assignment's only
-  // visual requirement (§3.9).
+  // Keep the band near the top on normal terminals. On short terminals, place it directly above
+  // the message and prompt so the band remains visible.
   const int bandRow = rows >= kBandRow + 1 ? kBandRow : (rows >= 2 ? rows - 1 : 0);
 
-  // The message and the prompt are bottom-anchored, so the newest response lines survive a tight `rows`.
+  // Keep the newest message lines when the terminal is too short for the full message.
   std::vector<std::string> messageLines = splitLines(message);
   int messageCount = static_cast<int>(messageLines.size());
   const int messageBudget = bandRow > 0 ? rows - bandRow - 1 : 0;
@@ -104,19 +102,18 @@ std::string Renderer::buildFrame(const Parameters& params, const MarqueeProcess&
     messageCount = messageBudget;
   }
 
-  const int blockTop = rows - messageCount;       // 1-based row of the first message line
-  const int separatorRow = blockTop - 1;          // the blank line above the block
+  const int blockTop = rows - messageCount;       // 1-based row of the first message line.
+  const int separatorRow = blockTop - 1;          // Blank row above the message block.
   const bool hasSeparator = bandRow > 0 && separatorRow > bandRow;
 
   std::vector<std::string> frame(static_cast<std::size_t>(rows));
 
   if (bandRow > 0) {
-    frame[static_cast<std::size_t>(bandRow - 1)] = " " + band + " ";            // one space of margin per side
-    if (bandRow >= 2) frame[0] = "Welcome to CSOPESY!";                          // capital W (§1.4 / M2)
+    frame[static_cast<std::size_t>(bandRow - 1)] = " " + band + " ";            // One space on each side.
+    if (bandRow >= 2) frame[0] = "Welcome to CSOPESY!";
   }
 
-  // Chrome below the band, dropped from the bottom up in the plan's priority order: `Version date:`, then the
-  // developer names, then `Group developer:` (§3.9).
+  // Add the fixed text below the band. Remove lower-priority rows first when the terminal is short.
   std::vector<std::string> chrome;
   chrome.push_back("");
   chrome.push_back("Group developer:");
@@ -125,8 +122,8 @@ std::string Renderer::buildFrame(const Parameters& params, const MarqueeProcess&
   chrome.push_back(params.versionDate.empty() ? std::string("Version date:")
                                               : "Version date: " + params.versionDate);
 
-  const int afterFirst = bandRow + 1;                                     // 1-based
-  const int afterLast = (hasSeparator ? separatorRow : blockTop) - 1;     // 1-based
+  const int afterFirst = bandRow + 1;                                     // 1-based.
+  const int afterLast = (hasSeparator ? separatorRow : blockTop) - 1;     // 1-based.
   int capacity = afterLast - afterFirst + 1;
   if (capacity < 0) capacity = 0;
   while (static_cast<int>(chrome.size()) > capacity) chrome.pop_back();
@@ -140,14 +137,11 @@ std::string Renderer::buildFrame(const Parameters& params, const MarqueeProcess&
 
   frame[static_cast<std::size_t>(rows - 1)] = buildPromptRow(prompt, buffer, cols);
 
-  // Padding every row (including the gaps) is what makes the frame's width equal the terminal's width: a full
-  // rebuild leaves no stale columns behind, and no row can ever wrap onto the row below it.
+  // Pad every row to the terminal width. This prevents stale text and prevents row wrapping.
   for (std::string& line : frame) line = padOrClip(line, cols);
 
-  // The LAST row stops one cell short of `cols` and is closed with erase-to-EOL. Writing a character into the
-  // terminal's bottom-right cell can make the terminal scroll one line, which pushes every earlier frame into
-  // scrollback so old frames accumulate. Erasing the reserved cell clears it without advancing the cursor, so
-  // the row still reads as full width while the frame never triggers that scroll.
+  // Leave the last cell unused and erase to the end of the line.
+  // Writing to the bottom-right cell can scroll the terminal and leave old frames in scrollback.
   std::string out(kCursorHome);
   for (int row = 0; row < rows; ++row) {
     if (row > 0) out += kRowSeparator;
@@ -162,7 +156,7 @@ std::string Renderer::buildFrame(const Parameters& params, const MarqueeProcess&
 }
 
 int Renderer::bandWidthFor(int cols) {
-  return cols > 2 ? cols - 2 : 1;   // max(1, cols - 2): one space of margin on each side
+  return cols > 2 ? cols - 2 : 1;   // One space of margin on each side.
 }
 
 }  // namespace csopesy
