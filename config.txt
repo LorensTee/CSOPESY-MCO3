@@ -1,0 +1,5 @@
+# CSOPESY default configuration (optional; read from the working directory).
+# This file is not required: if it is absent, the application uses its built-in defaults, which are
+# the same values shown here. Edit the keys below to change the defaults for a run.
+refresh_ms=100
+polling_ms=10

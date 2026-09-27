@@ -229,7 +229,7 @@ protocol; removing a header does not exempt the change from it).
 
 | Removed | Files / symbols | Authority | Contract change? |
 | --- | --- | --- | --- |
-| **The `.ini` configuration system** | `config/csopesy.ini` (delete) · `include/csopesy/config_io.hpp` (delete) · `src/entities/config_io.cpp` (delete) · `tests/unit/test_config.cpp` (delete) · `--config=PATH` · the `config/quiz_case_<n>.ini` convention and v2 §7's copy-over step | Professor answer #1 (D1) | **Yes** — one header deleted, `Parameters` loses its file layer |
+| **The `.ini` configuration system** | `config/csopesy.ini` (delete) · `include/csopesy/config_io.hpp` (delete) · `src/entities/config_io.cpp` (delete) · `tests/unit/test_config.cpp` (delete) · `--config=PATH` · the `config/quiz_case_<n>.ini` convention and v2 §7's copy-over step | Professor answer #1 (D1); **partly superseded by D19 (2026-09-28)** | **Yes** — one header deleted. `Parameters` lost its v2.6 file layer; v3.1 restores an optional, defaults-only `config.txt` layer in `cli.cpp` (D19) |
 | **The 5×5 ASCII-art glyph engine** | `include/csopesy/glyphs.hpp` (delete) · `src/features/marquee/glyphs.cpp` (delete) · `tests/unit/test_glyphs.cpp` (delete) · `Parameters::asciiArt` · `--plain` / `--art` · `kCellCols`/`kCellRows`/`kArtRows` · `renderBlockText` · `Renderer::artWidthFor` | Handout p.2 + professor answer #2 (D2) | **Yes** — one header deleted, `Parameters` and `Renderer` shrink |
 | **`marquee_row`** | `Parameters::marqueeRow`; replaced by the renderer constant `kBandRow = 3` | Professor answer #5 (D3) | **Yes** |
 | **The measurement telemetry** | `Parameters::measurePath` · `--measure=FILE` · `Scheduler::appendMeasure`, `measure_`, `pendingEventMs_`, `eventOwed_`, `noteEventLocked`'s stamping · `scripts/measure.*` · the CSV under `docs/measurements/` | D4 (operator carve-out: the **PPT requirement stays**, as a manual sweep — §T1.4) | **Yes** — `Scheduler`'s private state and `Parameters` shrink |
@@ -835,7 +835,8 @@ than carrying debt forward.
 | D6 | **Mon Sep 28** | Freeze, record, submit | T6.3 tag + SHA-256 in `docs/frozen-artifact.md`; §7 runbook dry run; T6.1 PPT assembled; T6.2 takes recorded with the MP4 embedded, ≤1 GB, ≤720p; deliverables uploaded + a backup copy | Nathan runs, Kim directs, Byron submits |
 
 **Cut line** (apply in order; never cut a spec requirement). v2's cut line is largely *pre-applied* by v3 — the
-glyph table, `FrameBuffer` diffing, `--diag`, `--measure`, `marquee_row` and the config layer are already gone.
+glyph table, `FrameBuffer` diffing, `--diag`, `--measure`, `marquee_row` and the `.ini` config layer are already
+gone (v3.1 later added the optional `config.txt` defaults layer, D19).
 What remains:
 
 1. **T4.3's tight-terminal priority polish** — ship the simple version first (`bandWidthFor` floors at 1, rows

@@ -103,7 +103,7 @@ And, from the same table: **one writer per file at any time.**
 `git hash-object` hashes the *committed blob*, so a CRLF checkout or a different line-ending setting cannot
 produce a false mismatch:
 
-| Header | Blob hash | v3.0 status |
+| Header | Blob hash | v3.1 status |
 | --- | --- | --- |
 | `cli.hpp` | `5961a2e58b9fba1c188dca7b0676cfaf01fa320c` | **changed (v3.1 — D19)** |
 | `console_app.hpp` | `af282ac885161be648f2c1e038936cce1e66d584` | unchanged (= v2.6) |

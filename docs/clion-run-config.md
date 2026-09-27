@@ -4,7 +4,7 @@ This file is the **evidence that the graded run configuration is real** (§2.4).
 owners running the T0.5 Step 5 gate on their own hardware — the gate is a hand-run checklist because no
 unit test can observe raw-mode restoration, a live resize, or a console that isn't a terminal (§5.0, §6.1).
 
-> **v3.0 update (T0.6, 2026-09-22).** The config layer is gone (D1), so both configurations now pass **no**
+> **v3.0 update (T0.6, 2026-09-22).** The `.ini` config layer is gone (D1), so both configurations now pass **no**
 > program arguments and `config/csopesy.ini` no longer exists. The `--diag` check below is replaced by watching
 > the program start (a Windows VT-enable failure is now a loud startup error, D5). And the live gate this file
 > records is now **T3.4, not T0.5** — no part of it could be observed before features existed, so v3 moved it
@@ -13,8 +13,9 @@ unit test can observe raw-mode restoration, a live resize, or a console that isn
 > configuration and presses Run again — never a rebuild (D14, plan §1.2).
 >
 > **v3.1 update (2026-09-28, D19).** An optional `config.txt` in the working directory may now supply default
-> parameters. That does not change this configuration, which still passes **no** program arguments and has no
-> committed `config.txt`.
+> parameters. A root `config.txt` is committed with values equal to the built-in defaults (`refresh_ms=100`,
+> `polling_ms=10`), so the graded run's effective defaults are unchanged. This configuration still passes
+> **no** program arguments.
 
 ## The two committed configurations
 

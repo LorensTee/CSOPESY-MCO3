@@ -520,8 +520,9 @@ Linux half belongs to Lorens; neither has been verified here. Only the macOS col
 2. Do **not** re-run the T5.2 interactive suite from scratch unless you need fresh evidence; the results above
    are recorded with the exact commit and method.
 3. Do **not** fill `docs/measurements/*` before `T6.3`; do **not** edit `include/csopesy/*.hpp`; do **not**
-   reintroduce glyphs, `FrameBuffer`, `ascii_art`, `marquee_row`, `--measure`, `--diag`, an injected `Clock`, a
-   config layer, or a second production mutex/condition variable.
+   reintroduce glyphs, `FrameBuffer`, `ascii_art`, `marquee_row`, `--measure`, `--diag`, an injected `Clock`, the
+   deleted `.ini` config layer (the v3.1 `config.txt` defaults layer is allowed, D19), or a second production
+   mutex/condition variable.
 4. Do **not** take Windows-only work (T3.4, T5.1, T3.3) from macOS; those are Nathan's.
 5. Keep `bash scripts/check_layers.sh` and the 11 frozen hashes green before every commit.
 
