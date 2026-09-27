@@ -558,6 +558,11 @@ argument's outer whitespace; preserve internal runs; `set_speed`'s argument must
 > **7 (D15).** After trimming, every byte of a `set_text` argument must be printable ASCII `[0x20, 0x7E]`.
 > Otherwise the command is rejected with the message above and `text` is unchanged.
 
+> **8 (issue #1).** `help`, `start_marquee`, `stop_marquee` and `exit` take **no** argument: a non-empty `arg`
+> after trimming is rejected with `Usage: <cmd>` and leaves state unchanged (`exit hello` does not quit).
+> `set_speed` accepts exactly one value; rule 6's full match already rejects `set_speed 100 200` as a usage
+> error, and a test pins it.
+
 **Why the rule is needed at all, given the line editor.** The interactive line editor appends **printable ASCII
 only** (Tab, control bytes and non-ASCII keys are ignored on entry, like the arrows), so typing cannot produce
 an invalid argument. But `executeLine` is also reached by (a) the unit tests, which call it directly, and
@@ -647,7 +652,10 @@ row is clipped to `cols` so no line ever wraps (a wrapped row would push the pro
 `scrollOffset` is always in `[0, textWidth + bandWidth)` and a blank band occurs once per period at `offset == 0`;
 no frame line exceeds `cols` visible columns; `buildFrame`'s output is a **single** string containing the band
 row and the prompt row for every non-degenerate `rows`/`cols`; and the frame is rebuilt from scratch each time,
-so a size change needs no invalidation flag.
+so a size change needs no invalidation flag. The **final (prompt) row** stops one cell short of `cols` and is
+closed with erase-to-EOL (`ESC[K`), so the frame never writes the terminal's bottom-right cell — that write
+makes some terminals scroll a line per frame and accumulate previous frames (§7, 2026-09-27, issue #3); its
+prompt window is sized to the resulting `cols - 1` so no visible character is lost.
 
 **Plain-line mode.** When `params.noTty || !term.isTty()`, `buildFrame` is **not called at all** and no worker
 thread is started: responses are printed as ordinary lines (`--no-tty` is what makes the real-binary smoke test
