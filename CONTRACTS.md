@@ -92,7 +92,7 @@ produce a false mismatch:
 | `interpreter.hpp` | `bb7d888a59e9a801fa57e380d408fae5f98365ed` | unchanged (= v2.6) |
 | `keys.hpp` | `1f6eeea8a1930ba9b15ea02fa62f29d65e106fa4` | unchanged (= v2.6) |
 | `line_editor.hpp` | `5f229d78338e7116a13b95c19c8fa98da62746d5` | unchanged (= v2.6) |
-| `parameters.hpp` | `0abc114c65f58183a1bf03886394600574f3c02e` | **changed** |
+| `parameters.hpp` | `4da5ae636ceb94a502aaf3a9d0e1f18c28458af3` | **changed** |
 | `process.hpp` | `104ed6f89fa51fdacaa635fdb4d9c757dceb2343` | unchanged (= v2.6) |
 | `renderer.hpp` | `3b0bd9663f5127ecd4a354354dec5181aa8220fe` | **changed** |
 | `scheduler.hpp` | `6c006cdcaddfe5c9573959d149cb794f457a980a` | **changed** |
@@ -104,12 +104,12 @@ went through the protocol above — in which case regenerate this table and bump
 or it did not, in which case revert it. A tool that rewrites a contract header is making a contract change;
 re-running a formatter does not exempt it.
 
-**Update — 2026-09-27, group member names.** `parameters.hpp`'s `developers` default changed from the
-handout-mock names to the four actual group members (`Ang, Byron Scott` · `Laborada, Nathan` ·
-`Sotingco, Kimbery Wynelle` · `Tee, John Lorens`), so its blob hash above was regenerated. This is a data-only
-change to the `developers` field initializer; no signature, range or method changed, and the other 10 headers
-still match their recorded hashes. `tests/unit/test_parameters.cpp` and `tests/unit/test_renderer.cpp` were
-updated in the same change.
+**Update — 2026-09-27, group member names + version date.** `parameters.hpp`'s `developers` default changed from
+the handout-mock names to the four actual group members (`Ang, Byron Scott` · `Laborada, Nathan` ·
+`Sotingco, Kimbery Wynelle` · `Tee, John Lorens`), and its `versionDate` default changed from blank to
+`"2026-09-27"`, so its blob hash above was regenerated. These are data-only changes to field initializers; no
+signature, range or method changed, and the other 10 headers still match their recorded hashes.
+`tests/unit/test_parameters.cpp` and `tests/unit/test_renderer.cpp` were updated in the same change.
 
 These headers are also the layer guard's input: `scripts/check_layers.sh` fails the build on any upward or
 cross-slice include among them (§3.1), on every push, on all three OSes (`.github/workflows/ci.yml`). v3.0

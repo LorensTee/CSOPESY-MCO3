@@ -158,7 +158,7 @@ TEST(buildFrame_normal_size_carries_the_menu_chrome) {
   CHECK_STR(trimRight(lines[7]), "Sotingco, Kimbery Wynelle");
   CHECK_STR(trimRight(lines[8]), "Tee, John Lorens");
   CHECK_STR(trimRight(lines[9]), "");
-  CHECK_STR(trimRight(lines[10]), "Version date:");         // blank version date => no trailing space
+  CHECK_STR(trimRight(lines[10]), "Version date: 2026-09-27");
   CHECK_STR(trimRight(lines[11]), "");
   CHECK(lines[12].compare(0, 8, "Command>") == 0);         // prompt row last
 }

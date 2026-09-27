@@ -18,7 +18,7 @@ TEST(defaults_carry_the_group_members) {
   CHECK_STR(p.developers[1], "Laborada, Nathan");
   CHECK_STR(p.developers[2], "Sotingco, Kimbery Wynelle");
   CHECK_STR(p.developers[3], "Tee, John Lorens");
-  CHECK_STR(p.versionDate, "");
+  CHECK_STR(p.versionDate, "2026-09-27");
 }
 
 // --- setRefresh: clamp + explicit report -------------------------------------------------------------

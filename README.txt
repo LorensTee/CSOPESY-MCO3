@@ -61,7 +61,7 @@ Parameters (defaults; the four that set values are reachable at runtime)
   refresh_ms    100         set_speed target; [1, 10000]
   polling_ms    10          max idle wait when nothing is ready; [1, 1000]
   developers    Ang, Byron Scott; Laborada, Nathan; Sotingco, Kimbery Wynelle; Tee, John Lorens
-  version_date  (blank)
+  version_date  2026-09-27
   no_tty        false       --no-tty; dev/CI only
 
 Threads

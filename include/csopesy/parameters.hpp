@@ -23,7 +23,7 @@ struct Parameters {
   // chrome  (the group members shown under "Group developer:")
   std::vector<std::string> developers = {"Ang, Byron Scott", "Laborada, Nathan",
                                          "Sotingco, Kimbery Wynelle", "Tee, John Lorens"};
-  std::string versionDate = "";     // blank in the mock; blank is valid
+  std::string versionDate = "2026-09-27";   // shown as "Version date: <date>"; blank is also valid
   // infra
   bool noTty = false;               // plain line mode: no raw mode, no ANSI, no frames, no worker thread.
                                     // DEV/CI ONLY (D13) — never part of the graded run, and the one field
