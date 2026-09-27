@@ -370,7 +370,14 @@ TEST(every_write_carries_exactly_one_whole_frame) {
     CHECK(w.rfind("\x1b[H", 0) == 0);                       // every write opens at the home cell...
     const std::vector<std::string> rows = splitFrame(w.substr(3));
     CHECK_EQ(rows.size(), size_t{24});                       // ...carries every row of one frame...
-    for (const std::string& row : rows) { CHECK_EQ(row.size(), size_t{80}); }   // ...each exactly cols wide
+    for (std::size_t i = 0; i + 1 < rows.size(); ++i) {
+      CHECK_EQ(rows[i].size(), size_t{80});                  // ...each except the last exactly cols wide...
+    }
+    // ...and the last row stops one cell short and erases the remainder, so the write never reaches the
+    // terminal's bottom-right cell (that write makes some terminals scroll a line per frame).
+    CHECK(rows.back().size() >= size_t{3});
+    CHECK(rows.back().rfind("\x1b[K") == rows.back().size() - 3);
+    CHECK(rows.back().size() - 3 <= size_t{79});
     total += w.size();
   }
   CHECK_EQ(h.term.outCopy().size(), total);                  // nothing reached the terminal outside write()

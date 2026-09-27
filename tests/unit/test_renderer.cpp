@@ -1,6 +1,7 @@
 // tests/unit/test_renderer.cpp — T4.2/T4.3: the plain-text frame layout (chrome rows, the band at kBandRow,
 // the prompt row last), the tight-terminal priority rule (band and prompt are never dropped), and the
-// one-complete-string-per-frame contract.
+// one-complete-string-per-frame contract. It also guards the bottom-right-cell rule: the frame's final row
+// stops one cell short so a terminal never scrolls and accumulates previous frames.
 //
 // The frame is observed as a whole string and then split back into visible rows, so these tests assert what
 // Terminal::write() actually receives rather than any internal helper.
@@ -61,11 +62,28 @@ std::string window(const std::string& line, std::size_t pos, std::size_t len) {
   return line.substr(pos, len);
 }
 
-bool allLinesAreExactly(const std::vector<std::string>& lines, int cols) {
-  for (const std::string& line : lines) {
-    if (static_cast<int>(line.size()) != cols) return false;
+// The frame's visible width must equal the terminal's width on every row, so a full rebuild leaves no stale
+// columns behind. The FINAL row is the exception: it stops one cell short and ends with erase-to-EOL, because
+// writing the terminal's bottom-right cell can make terminals scroll a line (see the bottom-right test below).
+bool allRowsFillWidth(const std::vector<std::string>& lines, int cols) {
+  if (lines.empty()) return false;
+  const std::string erase = "\x1b[K";
+  for (std::size_t i = 0; i + 1 < lines.size(); ++i) {
+    if (static_cast<int>(lines[i].size()) != cols) return false;
   }
-  return true;
+  const std::string& last = lines.back();
+  if (last.size() < erase.size()) return false;
+  if (last.compare(last.size() - erase.size(), erase.size(), erase) != 0) return false;
+  return static_cast<int>(last.size() - erase.size()) <= cols - 1;
+}
+
+// The row's visible bytes, with the final row's trailing erase-to-EOL removed.
+std::string visibleRow(const std::string& row) {
+  const std::string erase = "\x1b[K";
+  if (row.size() >= erase.size() && row.compare(row.size() - erase.size(), erase.size(), erase) == 0) {
+    return row.substr(0, row.size() - erase.size());
+  }
+  return row;
 }
 
 // cycles == bandWidth puts offset at bandWidth, i.e. text[0] in the band's first column, so the band is
@@ -94,6 +112,28 @@ TEST(kBandRow_is_fixed_at_three) {
   CHECK_EQ(Renderer::kBandRow, 3);
 }
 
+// Issue: writing the terminal's bottom-right cell can make a terminal scroll one line, so each frame pushes
+// the previous one into scrollback and old frames accumulate. The final (prompt) row must stop one cell short
+// and erase the remainder, leaving the cursor outside that cell.
+TEST(buildFrame_never_writes_the_bottom_right_cell) {
+  const int rows = 24, cols = 80;
+  const Renderer renderer;
+  Parameters params = Parameters::defaults();
+  MarqueeProcess proc = processShowingTextAtColumnZero(cols);
+  const std::string fullWidthBuffer(200, 'x');   // long enough that the prompt row would otherwise fill cols
+
+  int lineCount = 0;
+  const std::vector<std::string> lines =
+      frameLines(renderer.buildFrame(params, proc, "Command>", fullWidthBuffer, "", rows, cols), rows, &lineCount);
+
+  CHECK_EQ(lineCount, rows);
+  CHECK(allRowsFillWidth(lines, cols));
+  const std::string& last = lines[static_cast<std::size_t>(rows - 1)];
+  CHECK(last.size() >= 3);
+  CHECK_STR(last.size() >= 3 ? last.substr(last.size() - 3) : std::string(), "\x1b[K");
+  CHECK(static_cast<int>(last.size() - 3) <= cols - 1);   // never reaches the last column
+}
+
 // --- T4.2: the normal frame layout -----------------------------------------------------------------------
 
 TEST(buildFrame_normal_size_carries_the_mock_chrome_verbatim) {
@@ -107,7 +147,7 @@ TEST(buildFrame_normal_size_carries_the_mock_chrome_verbatim) {
   const std::vector<std::string> lines = frameLines(frame, rows, &lineCount);
 
   CHECK_EQ(lineCount, rows);
-  CHECK(allLinesAreExactly(lines, cols));
+  CHECK(allRowsFillWidth(lines, cols));
   CHECK_STR(trimRight(lines[0]), "Welcome to CSOPESY!");   // capital W (M2)
   CHECK_STR(trimRight(lines[1]), "");
   CHECK_STR(trimRight(lines[2]), " CSOPESY");             // band: one space of margin, then text[0] in col 0
@@ -183,7 +223,7 @@ TEST(buildFrame_clips_every_row_to_cols_so_nothing_wraps) {
                           rows, cols),
       rows, &lineCount);
   CHECK_EQ(lineCount, rows);
-  CHECK(allLinesAreExactly(lines, cols));
+  CHECK(allRowsFillWidth(lines, cols));
 }
 
 TEST(buildFrame_prompt_row_is_last_and_shows_the_buffer_tail) {
@@ -234,7 +274,7 @@ TEST(buildFrame_keeps_the_band_and_the_prompt_on_tight_terminals) {
         frameLines(renderer.buildFrame(params, proc, "Command>", "", "", rows, cols), rows, &lineCount);
 
     CHECK_EQ(lineCount, rows);
-    CHECK(allLinesAreExactly(lines, cols));
+    CHECK(allRowsFillWidth(lines, cols));
 
     // The band stays at kBandRow while there is room for it, otherwise it sits directly above the block.
     const int bandRow = rows >= Renderer::kBandRow + 1 ? Renderer::kBandRow : rows - 1;
@@ -254,9 +294,12 @@ TEST(buildFrame_keeps_the_band_and_the_prompt_when_both_rows_and_cols_are_tiny) 
     const std::vector<std::string> lines =
         frameLines(renderer.buildFrame(params, proc, "Command>", "", "", 4, cols), 4, &lineCount);
     CHECK_EQ(lineCount, 4);
-    CHECK(allLinesAreExactly(lines, cols));
+    CHECK(allRowsFillWidth(lines, cols));
     CHECK(lines[Renderer::kBandRow - 1].size() == static_cast<std::size_t>(cols));   // band row present
-    CHECK(lines[3].compare(0, 1, "C") == 0);                                        // prompt row present
+    // A single column is entirely the reserved bottom-right cell, so the prompt row is blank there; from two
+    // columns up the prompt's first character is visible.
+    const std::string promptRow = visibleRow(lines[3]);
+    CHECK_STR(cols == 1 ? promptRow : promptRow.substr(0, 1), cols == 1 ? std::string() : std::string("C"));
   }
 }
 
@@ -284,8 +327,8 @@ TEST(buildFrame_rebuilds_for_a_new_size_with_no_invalidation_flag) {
 
   CHECK_EQ(wideRows, rows);
   CHECK_EQ(narrowRows, rows);
-  CHECK(allLinesAreExactly(wideLines, 40));
-  CHECK(allLinesAreExactly(narrowLines, 20));
+  CHECK(allRowsFillWidth(wideLines, 40));
+  CHECK(allRowsFillWidth(narrowLines, 20));
   CHECK(wide != narrow);   // the rebuild follows the new cols immediately; no stale width survives
 }
 

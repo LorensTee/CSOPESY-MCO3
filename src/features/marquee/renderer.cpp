@@ -16,6 +16,7 @@ namespace {
 // DISABLE_NEWLINE_AUTO_RETURN, so the renderer owns its carriage returns: rows are separated by CRLF.
 constexpr char kCursorHome[] = "\x1b[H";
 constexpr char kRowSeparator[] = "\r\n";
+constexpr char kEraseToEol[] = "\x1b[K";
 
 std::string padOrClip(const std::string& line, int cols) {
   if (cols <= 0) return {};
@@ -42,14 +43,18 @@ std::vector<std::string> splitLines(const std::string& text) {
 // The prompt row shows the TAIL of the buffer so the cursor stays visible on one fixed row (§3.11). Copying
 // that rule here is deliberate: visibleSlice lives in the commands slice, and features/ may not cross-import,
 // so the marquee owns the window it draws.
+//
+// The prompt row is the frame's LAST row, so it is sized to `cols - 1`: buildFrame leaves the terminal's
+// bottom-right cell unwritten, and the window must fit in the columns that remain visible.
 std::string buildPromptRow(const std::string& prompt, const std::string& buffer, int cols) {
-  const int available = cols - static_cast<int>(prompt.size()) - 1;
+  const int width = cols > 1 ? cols - 1 : 0;
+  const int available = width - static_cast<int>(prompt.size()) - 1;
   std::string window;
   if (available > 0 && !buffer.empty()) {
-    const std::size_t width = static_cast<std::size_t>(available);
-    window = buffer.size() <= width ? buffer : buffer.substr(buffer.size() - width);
+    const std::size_t w = static_cast<std::size_t>(available);
+    window = buffer.size() <= w ? buffer : buffer.substr(buffer.size() - w);
   }
-  return padOrClip(prompt + " " + window, cols);
+  return padOrClip(prompt + " " + window, width);
 }
 
 }  // namespace
@@ -139,10 +144,19 @@ std::string Renderer::buildFrame(const Parameters& params, const MarqueeProcess&
   // rebuild leaves no stale columns behind, and no row can ever wrap onto the row below it.
   for (std::string& line : frame) line = padOrClip(line, cols);
 
+  // The LAST row stops one cell short of `cols` and is closed with erase-to-EOL. Writing a character into the
+  // terminal's bottom-right cell can make the terminal scroll one line, which pushes every earlier frame into
+  // scrollback so old frames accumulate. Erasing the reserved cell clears it without advancing the cursor, so
+  // the row still reads as full width while the frame never triggers that scroll.
   std::string out(kCursorHome);
   for (int row = 0; row < rows; ++row) {
     if (row > 0) out += kRowSeparator;
-    out += frame[static_cast<std::size_t>(row)];
+    if (row == rows - 1) {
+      out += padOrClip(frame[static_cast<std::size_t>(row)], cols > 1 ? cols - 1 : 0);
+      out += kEraseToEol;
+    } else {
+      out += frame[static_cast<std::size_t>(row)];
+    }
   }
   return out;
 }
