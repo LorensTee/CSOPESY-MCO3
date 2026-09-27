@@ -7,14 +7,17 @@ using csopesy::ClampReport;
 using csopesy::Parameters;
 using csopesy::TextResult;
 
-TEST(defaults_match_the_handout_mock) {
+TEST(defaults_carry_the_group_members) {
   const Parameters p = Parameters::defaults();
   CHECK_STR(p.text, "CSOPESY");
   CHECK_EQ(p.refreshMs, 100);
   CHECK_EQ(p.pollingMs, 10);
   CHECK(!p.noTty);
-  CHECK_EQ(p.developers.size(), size_t{2});
-  CHECK_STR(p.developers[0], "De La Cruz, Juan");
+  CHECK_EQ(p.developers.size(), size_t{4});
+  CHECK_STR(p.developers[0], "Ang, Byron Scott");
+  CHECK_STR(p.developers[1], "Laborada, Nathan");
+  CHECK_STR(p.developers[2], "Sotingco, Kimbery Wynelle");
+  CHECK_STR(p.developers[3], "Tee, John Lorens");
   CHECK_STR(p.versionDate, "");
 }
 

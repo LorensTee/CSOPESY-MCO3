@@ -20,8 +20,9 @@ struct Parameters {
   std::string text   = "CSOPESY";   // INVARIANT: every byte is in [0x20, 0x7E]. Mutated only via setText().
   int  refreshMs     = 100;         // set_speed target. range [1, 10000]
   int  pollingMs     = 10;          // MAX idle wait when nothing is ready. [1, 1000]; does NOT delay keys
-  // chrome  (matches the handout's mock exactly, §1.4)
-  std::vector<std::string> developers = {"De La Cruz, Juan", "Santos, Alex"};
+  // chrome  (the group members shown under "Group developer:")
+  std::vector<std::string> developers = {"Ang, Byron Scott", "Laborada, Nathan",
+                                         "Sotingco, Kimbery Wynelle", "Tee, John Lorens"};
   std::string versionDate = "";     // blank in the mock; blank is valid
   // infra
   bool noTty = false;               // plain line mode: no raw mode, no ANSI, no frames, no worker thread.

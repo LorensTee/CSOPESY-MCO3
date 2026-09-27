@@ -60,7 +60,7 @@ Parameters (defaults; the four that set values are reachable at runtime)
   text          "CSOPESY"   set_text target; printable ASCII 0x20-0x7E
   refresh_ms    100         set_speed target; [1, 10000]
   polling_ms    10          max idle wait when nothing is ready; [1, 1000]
-  developers    De La Cruz, Juan; Santos, Alex
+  developers    Ang, Byron Scott; Laborada, Nathan; Sotingco, Kimbery Wynelle; Tee, John Lorens
   version_date  (blank)
   no_tty        false       --no-tty; dev/CI only
 
