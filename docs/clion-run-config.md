@@ -55,13 +55,17 @@ Using **`csopesy-dev`**, press Run/Debug and confirm:
 
 | Check | Linux (W1) | Windows (W2/W3) | macOS (W4) |
 | --- | --- | --- | --- |
-| (a) ANSI renders as layout, not literal escape codes | *to fill* | *to fill* | *to fill* |
-| (b) `start_marquee` animates **while** the prompt accepts typing | *to fill* | *to fill* | *to fill* |
-| (c) The program animates while accepting typing — i.e. raw mode is on and VT output works. (v3.0 removed `--diag`; on Windows a VT-enable failure is a **loud startup error**, D5) | *to fill* | *to fill* | *to fill* |
-| (d) window resize mid-animation repaints cleanly | *to fill* | *to fill* | *to fill* |
-| Terminal switch chosen | *to fill* | *to fill* | *to fill* |
-| CLion version / toolchain | *to fill* | *to fill* | *to fill* |
-| Verified by (name, date) | *to fill* | *to fill* | *to fill* |
+| (a) ANSI renders as layout, not literal escape codes | *to fill* | ✅ layout rendered, no literal escapes | *to fill* |
+| (b) `start_marquee` animates **while** the prompt accepts typing | *to fill* | ✅ 19 band positions in 2.0 s, keystrokes echoed | *to fill* |
+| (c) The program animates while accepting typing — i.e. raw mode is on and VT output works. (v3.0 removed `--diag`; on Windows a VT-enable failure is a **loud startup error**, D5) | *to fill* | ✅ animates and echoes; no startup error | *to fill* |
+| (d) window resize mid-animation repaints cleanly | *to fill* | ✅ 120×30 → 90×30 → 120×30, one frame | *to fill* |
+| Terminal switch chosen | *to fill* | **Run in external console** (`USE_EXTERNAL_CONSOLE="true"`) | *to fill* |
+| CLion version / toolchain | *to fill* | CLion 2026.2.3 (`CL-262.10968.117`) · MinGW GCC 14.2.0 | *to fill* |
+| Verified by (name, date) | *to fill* | W3, 2026-09-27 (on the graded `csopesy-quiz` entry) | *to fill* |
+
+The Windows column was observed on the graded **`csopesy-quiz` external-console** run (T3.4), because that
+is the Windows config with the real-console backend; `csopesy-dev`'s emulated console is the Linux/macOS
+choice on Windows (see the switch table below).
 
 Resize works because **both backends re-read `Terminal::size()` every tick** (§3.8) rather than relying on
 a platform resize event — so (d) exercises the same path on all three OSes.
@@ -83,16 +87,18 @@ still shows Run/Debug in CLion initializing the program, which is what the hando
 > `EMULATE_TERMINAL="true"`, which suits Linux/macOS; if a Windows dev press needs the external console,
 > keep that flip local (`git update-index --skip-worktree`) rather than committing a third file.
 
-## `csopesy-quiz` Before-launch list (Step 5, captured not-run)
+## `csopesy-quiz` Before-launch list (Step 5) — **T3.4 passed 2026-09-27**
 
-T6.3 is complete (`docs/frozen-artifact.md`, tag `quiz-frozen`), so the frozen artifact now exists. The
-shared `csopesy-quiz` entry above is CLion 2026.2.3's own output with the Build task removed — the
-committed XML carries **no** `<method>` (Before-launch) block, so the press cannot rebuild. Still owed by
-the owner in the GUI (T3.4 gate): press Run on the *shared* entry and confirm the frozen SHA-256 is
-unchanged.
+T6.3 is complete (`docs/frozen-artifact.md`, tag `quiz-frozen`) and the frozen artifact exists. The shared
+`csopesy-quiz` entry is CLion 2026.2.3's own output with the Build task removed — the committed XML carries
+**no** `<method>` (Before-launch) block. **T3.4:** the owner pressed Run on the shared entry in the external
+console and the live gate passed: the marquee animated while the prompt accepted typing, a mid-animation
+resize to 90×30 repainted cleanly with no frame accumulation, and the frozen SHA-256 was unchanged
+before/after the press. See `docs/frozen-artifact.md` for the full result and hashes.
 
-## T6.3 Step 0 — re-verification once the artifact exists
+## T6.3 Step 0 — re-verification (done 2026-09-27)
 
-Recorded here when it happens: press Run on `csopesy-quiz` and confirm no `Build` entry runs, the process
-starts the binary in `frozen/`, and the binary's SHA-256 is **unchanged** after the press (a relink would
-change it and invalidate the frozen claim).
+Recorded here when it happened: Run was pressed on `csopesy-quiz`; no `Build` entry ran, the process started
+the binary in `frozen/`, and the binary's SHA-256 was **unchanged** after the press (`ec86bb06…03e90b0`
+before and after — a relink would have changed it and invalidated the frozen claim). The external console
+showed the live marquee and prompt, so this row and the T3.4 row in `docs/frozen-artifact.md` are both closed.
