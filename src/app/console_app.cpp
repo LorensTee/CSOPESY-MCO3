@@ -1,7 +1,8 @@
-// src/app/console_app.cpp — the composition root (§T2.5).
-// ConsoleApp starts the marquee worker, then BECOMES the input/command thread. While the worker lives the
-// marquee thread is the only terminal writer; the initial header frame and the final goodbye line are written
-// before start() and after join(), i.e. at the two moments the program is single-threaded again.
+// src/app/console_app.cpp — the application entry point after setup.
+//
+// ConsoleApp starts the marquee worker and then handles input on the main thread.
+// While the worker runs, it is the only thread that writes frames.
+// The main thread writes the first and last messages when no worker is running.
 #include <iostream>
 #include <string>
 
@@ -16,8 +17,8 @@
 namespace csopesy {
 namespace {
 
-// Plain line mode (--no-tty or a non-tty stdin): no raw mode, no ANSI, no frames, NO worker thread. Responses
-// are ordinary lines, which is what lets the real binary be smoke-tested on all three CI images.
+// Run without raw mode, ANSI output, or a worker thread.
+// This mode lets the real binary run as a normal line-based program.
 int runPlainLineMode(Parameters& params) {
   MarqueeProcess proc;
   Interpreter interp(params, proc);
@@ -47,14 +48,15 @@ int ConsoleApp::run() {
     return runPlainLineMode(params_);
   }
 
-  // Locals, not members: this keeps the frozen public header unchanged and makes §3.10's destruction order
-  // explicit in one scope. ~Scheduler joins as a backstop on any early return.
+  // Keep these objects as locals so their destruction order is clear.
+  // The Scheduler joins the worker thread before the objects are destroyed.
   Renderer renderer;
   MarqueeProcess proc;
   Interpreter interp(params_, proc);
   Scheduler scheduler(term_, params_, renderer, interp, proc);
 
-  // The header is drawn before the worker exists, so the worker remains the only writer while it lives.
+  // Draw the first frame before the worker starts.
+  // The main thread can write it because no worker exists yet.
   {
     const Size size = term_.size();
     const std::string frame = renderer.buildFrame(params_, proc, interp.prompt(), interp.buffer(),
@@ -67,8 +69,8 @@ int ConsoleApp::run() {
 
   scheduler.start();
 
-  // Input/command thread: read one event, hand it to the worker, then re-check both exit intents. The check
-  // runs after EVERY readEvent (including the timeout/EINTR path), or `exit` would leave the worker animating.
+  // Read one event, send it to the scheduler, then check for shutdown.
+  // Check after every readEvent() call so the worker stops even after a timeout or EINTR.
   for (;;) {
     KeyEvent event;
     if (term_.readEvent(event, params_.pollingMs)) {
@@ -80,9 +82,9 @@ int ConsoleApp::run() {
   }
 
   scheduler.requestStop();
-  scheduler.join();   // before the terminal is restored: no worker may write into a restored terminal
+  scheduler.join();   // Restore the terminal only after the worker stops.
 
-  // The join returned the program to one thread, so the input thread may print the goodbye line.
+  // The worker has stopped, so the main thread can write the goodbye line.
   term_.write("Exiting CSOPESY. Goodbye!\r\n");
   term_.flush();
   return 0;
