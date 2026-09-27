@@ -8,7 +8,7 @@ intended — **update both in the same session**.
 **Rule for this file:** update it at the **end of every working session**, before you stop. A session that
 changes nothing still gets a dated line in §7. Never mark a stage done without the artifact it produced.
 
-**Established:** 2026-09-22 · **Last updated:** 2026-09-27 (**W1: T1.3's deferred frame-write and command-effect assertions landed** — 7 new tests in `tests/unit/test_scheduler.cpp` (only the worker ever writes; exactly one whole frame per `write()`; echo not gated by `refreshMs`; the four posted-command effects), **16 assertions red against the pre-`T4.2`/`T2.4` stubs at `cddba69`** then `OK 124 tests`; `ctest` 2/2, guard `OK (22 files scanned)`, 11/11 frozen hashes, warning-free clean rebuild. Prior: **T3.4 shared config committed: the GUI-recreated `csopesy-quiz` entry is now tracked** — `type="CLionExternalRunConfiguration"`, `RUN_PATH` at the frozen exe, external console, **no** Build task (the as-created entry still had it enabled; removed before committing), plus the newly-tracked `.idea/customTargets.xml` — `docs/clion-run-config.md`, `docs/frozen-artifact.md`. Prior: **T3.4 prerequisite verified: the committed `csopesy-quiz` type id `CustomBuildApplication` is not registered by CLion 2026.2.3 — the real *Custom Build Application* id is `CLionExternalRunConfiguration`, so the config must be recreated in the GUI before the Run press; `csopesy-dev` verified valid** — `docs/clion-run-config.md`, `docs/frozen-artifact.md`. Prior: **T6.3 freeze produced** — `frozen/csopesy.exe` (Release) from `4c5e8cf`, SHA-256 `a9cbc09e…1fd4f15f`, tagged `quiz-frozen`, record `docs/frozen-artifact.md`; only the T3.4 CLion Run-press gate remains. **Phase 2: T5.1 + T5.2 done** — T5.1 A1–A11 on a real Win32 console **38/38**, A8 real-overlap recorded (`docs/t5.1-windows-acceptance.md`); T5.2 `ctest` **2/2 on Windows, Linux and macOS** ([CI run 36007416747](https://github.com/LorensTee/CSOPESY-MCO3/actions/runs/36007416747), record `docs/t5.2-cross-os-ctest.md`); local gate `ctest` 2/2 (unit 117 + smoke), guard `OK (22 files scanned)`, 11/11 frozen hashes. Prior: **W4: Phase 1A `T4.1`–`T4.3` landed** — `scrollOffset`/`sliceRow` + `Renderer::buildFrame` (plain-text band, chrome, message rows, bottom-anchored prompt, tight-terminal priority), 27 new tests, red-before/green-after; **no frozen header touched** (11/11 hashes), guard `OK (22 files scanned)`, `ctest` 2/2 (unit **117** + smoke). **Phase 1 is now code-complete in all four workstreams.** Prior: W2 Phase 1D `T2.1`–`T2.6` + the same-day follow-up (`feed(Eof)` quit fix `24c41e9`, README Ninja `ff602f4`); W3 `T3.1`/`T3.2`; W1 `T1.1`–`T1.3`.) 
+**Established:** 2026-09-22 · **Last updated:** 2026-09-27 (**the remaining verification work is split by OS and the W3 handoff is recorded in §12** — W3/Nathan owns **`T3.3` + `T3.4` + the Windows artifact's distribution and evidence**, and must **not** touch the Linux tables; W1/Lorens owns **`T1.4`** (the Linux sweep), which has **no POSIX artifact to run** because `T6.3` froze only `frozen/csopesy.exe` (a PE) while plan §7 expects `sha256sum frozen/csopesy`; W4/Kim then synthesizes **`T5.3`**. Two gaps recorded rather than glossed: `linux-{refresh,polling}.md` currently name the Windows PE as the artifact under test, and the `A′` policy's *release asset / submission package* half is unfulfilled — there is no GitHub Release and `frozen/` is empty on W1's machine. Prior: **W1: T1.3's deferred frame-write and command-effect assertions landed** — 7 new tests in `tests/unit/test_scheduler.cpp` (only the worker ever writes; exactly one whole frame per `write()`; echo not gated by `refreshMs`; the four posted-command effects), **16 assertions red against the pre-`T4.2`/`T2.4` stubs at `cddba69`** then `OK 124 tests`; `ctest` 2/2, guard `OK (22 files scanned)`, 11/11 frozen hashes, warning-free clean rebuild. Prior: **T3.4 shared config committed: the GUI-recreated `csopesy-quiz` entry is now tracked** — `type="CLionExternalRunConfiguration"`, `RUN_PATH` at the frozen exe, external console, **no** Build task (the as-created entry still had it enabled; removed before committing), plus the newly-tracked `.idea/customTargets.xml` — `docs/clion-run-config.md`, `docs/frozen-artifact.md`. Prior: **T3.4 prerequisite verified: the committed `csopesy-quiz` type id `CustomBuildApplication` is not registered by CLion 2026.2.3 — the real *Custom Build Application* id is `CLionExternalRunConfiguration`, so the config must be recreated in the GUI before the Run press; `csopesy-dev` verified valid** — `docs/clion-run-config.md`, `docs/frozen-artifact.md`. Prior: **T6.3 freeze produced** — `frozen/csopesy.exe` (Release) from `4c5e8cf`, SHA-256 `a9cbc09e…1fd4f15f`, tagged `quiz-frozen`, record `docs/frozen-artifact.md`; only the T3.4 CLion Run-press gate remains. **Phase 2: T5.1 + T5.2 done** — T5.1 A1–A11 on a real Win32 console **38/38**, A8 real-overlap recorded (`docs/t5.1-windows-acceptance.md`); T5.2 `ctest` **2/2 on Windows, Linux and macOS** ([CI run 36007416747](https://github.com/LorensTee/CSOPESY-MCO3/actions/runs/36007416747), record `docs/t5.2-cross-os-ctest.md`); local gate `ctest` 2/2 (unit 117 + smoke), guard `OK (22 files scanned)`, 11/11 frozen hashes. Prior: **W4: Phase 1A `T4.1`–`T4.3` landed** — `scrollOffset`/`sliceRow` + `Renderer::buildFrame` (plain-text band, chrome, message rows, bottom-anchored prompt, tight-terminal priority), 27 new tests, red-before/green-after; **no frozen header touched** (11/11 hashes), guard `OK (22 files scanned)`, `ctest` 2/2 (unit **117** + smoke). **Phase 1 is now code-complete in all four workstreams.** Prior: W2 Phase 1D `T2.1`–`T2.6` + the same-day follow-up (`feed(Eof)` quit fix `24c41e9`, README Ninja `ff602f4`); W3 `T3.1`/`T3.2`; W1 `T1.1`–`T1.3`.) 
 **Deadline: Monday 2026-09-28** (revised from 2026-09-23 — six days, not one). **The §4.5 change-control protocol
 is honored in full: no header change lands ahead of ratification.** Stage sequence in §9.
 
@@ -20,7 +20,7 @@ is honored in full: no header change lands ahead of ratification.** Stage sequen
 | --- | --- |
 | **Deadline** | **Monday 2026-09-28** (revised from 2026-09-23 on 2026-09-22 — operator-stated; see §6 provenance). Six days. Urgency removed, so **D17** applies: no workaround for §4.5. |
 | **Current stage** | **T0.6 — DONE and fully closed. Phase 1 is CODE-COMPLETE: T1.1–T1.3 (W1), T2.1–T2.6 (W2), T3.1–T3.2 (W3) and T4.1–T4.3 (W4) are all implemented.** Contracts are **v3.0**, committed as **`d6379df`** (2026-09-22; guard `OK (22 files scanned)`, `ctest` 1/1, **11/11** hashes match). **T1.1 (`src/platform/terminal_posix.cpp`, `PosixTerminal`) is implemented, pty-verified, and pushed with CI green on all three OSes** ([run 35728920428](https://github.com/LorensTee/CSOPESY-MCO3/actions/runs/35728920428)). **T1.2 (`MarqueeProcess` PCB, `src/entities/process.cpp`) is implemented, unit-tested, and pushed as `ed18908` — CI is green on all three OSes** ([run 35732133066](https://github.com/LorensTee/CSOPESY-MCO3/actions/runs/35732133066): ubuntu 20 s, macOS 18 s, Windows 1 m 14 s) — 7 tests, red-before/green-after, guard `OK (22 files scanned)`, 11/11 hashes unchanged (§7). **T1.3 (the threaded scheduler, `src/app/scheduler.cpp`) is implemented, red-before/green-after, and locally verified** — 16 tests, 53 assertions red against the stub then green, `ctest` 1/1, 150 consecutive clean runs, `grep -n 'sleep_' tests/unit/test_scheduler.cpp` prints **nothing**, guard `OK (22 files scanned)`, 11/11 hashes unchanged (§6, §7). Its tests are deliberately **scheduler-only**: assertions needing another owner's implementation are deferred and listed in §6, not faked. Landed as **`95b0b61`** and pushed; **CI [run 35735238660](https://github.com/LorensTee/CSOPESY-MCO3/actions/runs/35735238660) is green on all three OSes** (ubuntu-latest 53 s, macos-latest 49 s, windows-latest 47 s) — the first CI run in which the `unit` target drives a real worker thread, which is the 3-OS half of `AGENTS.md` §8 item 2. **T3.1 (`536f865`) + T3.2 (`cddba69`) are pushed; CI [run 35866073135](https://github.com/LorensTee/CSOPESY-MCO3/actions/runs/35866073135) is green on all three OSes** — T3.1's real-app checks (animation while typing, both consoles, QuickEdit, Ctrl+C) defer to T3.4, so the implementation is done but its live verification is not. **W4's `T4.1`–`T4.3` (`src/features/marquee/renderer.cpp`) are implemented, red-before/green-after, and locally verified** — 27 new tests (scroll math + `sliceRow` width invariant; frame layout, band at `kBandRow`, capital-W welcome, clipping; tight-terminal band/prompt priority, message rows, full rebuild), **180 assertions red against the stub then `OK 117 tests`**, `ctest` 2/2 (unit 117 + smoke), guard `OK (22 files scanned)`, 11/11 hashes unchanged, warning-free clean rebuild (§7). **Phase 1 is now code-complete in all four workstreams.** |
-| **Next action** | **W1's `T1.3` is CLOSED** (landed `95b0b61`, CI green on all three OSes). **`T1.4` (the Linux measurement sweep) is not actionable yet**: D14 wants observations from the **frozen** binary (`T6.3`), never from a rebuilt debug binary — do not fake it with a unit-test-shaped substitute. The §6 deferred T1.3 assertions **landed 2026-09-27** in W1's `tests/unit/test_scheduler.cpp`: only the marquee thread ever writes, every `write()` carries exactly one whole frame, a keystroke's echo is not gated by `refreshMs`, and each posted command's effect (`stop_marquee`/`set_text`/`set_speed`/`exit`) is observed through `postEvent` — **16 assertions red against the pre-`T4.2`/`T2.4` stubs (`cddba69`)**, then `OK 124 tests`. **W1's only remaining item is `T1.4`**, and it is gated on a **POSIX** frozen artifact, not just on the Windows one: `T6.3` froze `frozen/csopesy.exe` (a PE) while the plan's §7 expects `sha256sum frozen/csopesy`, so the Linux sweep has nothing to run yet (raise with W2/W3; do not substitute a debug build). **W3's `T3.1`/`T3.2` are CLOSED** (pushed `536f865` + `cddba69`, CI green); W3's next work is `T3.4` — the W2/W4 stubs it was waiting on have now landed (`T2.x` and `T4.1`–`T4.3`), so the live CLion gate is actionable; only `frozen/csopesy.exe` (`T6.3`) is still outstanding. Task bodies and ids are in `IMPLEMENTATION_PLAN_v3.md` §5 — ids keep their v2 numbers, and §3.8's delta list is what applied to the scheduler (`term_.nowMs()` not `Clock`, `buildFrame` + one `write()`, no `--measure` fields). |
+| **Next action** | **W1's `T1.3` is CLOSED** (landed `95b0b61`, CI green on all three OSes). **`T1.4` (the Linux measurement sweep) is not actionable yet**: D14 wants observations from the **frozen** binary (`T6.3`), never from a rebuilt debug binary — do not fake it with a unit-test-shaped substitute. The §6 deferred T1.3 assertions **landed 2026-09-27** in W1's `tests/unit/test_scheduler.cpp`: only the marquee thread ever writes, every `write()` carries exactly one whole frame, a keystroke's echo is not gated by `refreshMs`, and each posted command's effect (`stop_marquee`/`set_text`/`set_speed`/`exit`) is observed through `postEvent` — **16 assertions red against the pre-`T4.2`/`T2.4` stubs (`cddba69`)**, then `OK 124 tests`. **W1's only remaining item is `T1.4`**, and it is gated on a **POSIX** frozen artifact, not just on the Windows one: `T6.3` froze `frozen/csopesy.exe` (a PE) while the plan's §7 expects `sha256sum frozen/csopesy`, so the Linux sweep has nothing to run yet (raise with W2/W3; do not substitute a debug build) — and the two Linux tables still name that same PE in their *Artifact under test* line, which is W1/W2's text to correct, not W3's (§6). **W3's `T3.1`/`T3.2` are CLOSED** (pushed `536f865` + `cddba69`, CI green); W3's remaining work is **`T3.4` + `T3.3` + the Windows artifact's distribution** — `T6.3` produced `frozen/csopesy.exe` on 2026-09-24, so the live CLion gate and the Windows sweep are both actionable, and the paste-ready message is **§12**. **Loose end recorded, not faked:** the `A′` policy (`REVIEW_ADJUDICATION.md` pt 18) ships the binary as a *submission package / release asset*, and there is **no GitHub Release**, so the Windows PE is frozen but not yet obtainable from a clone. Task bodies and ids are in `IMPLEMENTATION_PLAN_v3.md` §5 — ids keep their v2 numbers, and §3.8's delta list is what applied to the scheduler (`term_.nowMs()` not `Clock`, `buildFrame` + one `write()`, no `--measure` fields). |
 | **T0.6 Step 6 — CLOSED** | **The group announcement (§11) was sent** — operator-stated 2026-09-22 (a human action, recorded here rather than as an in-repo artifact). Together with the green CI run [35724109198](https://github.com/LorensTee/CSOPESY-MCO3/actions/runs/35724109198) on all three OSes (ubuntu 17 s, macOS 26 s, Windows 45 s), **every T0.6 step is now closed** and `AGENTS.md` §8 item 2 is satisfied. |
 | **Blocked on** | **Nothing.** The §4.5 gate is satisfied and recorded as **D18** (W2 Byron, the freeze owner, 2026-09-22). If W3 or W4 objects to the change, `d6379df` is one revertable commit; when it landed every `src/*.cpp` was still a `TODO` stub, so nothing consumed it yet (T1.1 is the first consumer, 2026-09-22). |
 | **W2 Phase 1D — implementation complete 2026-09-24** | ✅ **`T2.1`–`T2.5` complete; `T2.6`'s README complete. The frozen-artifact portion of `T2.6` is intentionally deferred to `T6.3`. TDD red-before/green-after per task.** `parameters.cpp` (clamp + `ClampReport`; `setText` trim/internal-run → Ok/Empty/NonAscii), `cli.cpp` (three flags; unknown/malformed warn+continue, out-of-range clamps+reports, last-wins), `line_editor.cpp` (`feed` echo/Backspace/Enter-Eof/ignored arrows + `visibleSlice` tail window), `interpreter.cpp` (case-sensitive dispatch table, exact §3.7 lines, `[-+]?[0-9]+` full match, three `set_text` outcomes), `main.cpp` + `console_app.cpp` (RAII raw-mode guard, initial frame before `start()`, input/command loop, `requestStop`→`join`→goodbye order, `--no-tty` plain line mode with **no worker**) + the portable `ctest smoke` real-binary test, `README.txt`. **`T2.4` clears the blocker on W1's deferred T1.3 command-effect assertions; `T2.5` removes the W2 application blocker from `T1.4` and `T3.4` — both remain gated on the finished application and, for `T3.4`, on `frozen/csopesy.exe` (`T6.3`).** The composition root is **locals in `run()`**, not new private members, so `console_app.hpp` keeps its v2.6 hash (risk 6 not reopened). `T2.6`'s frozen-artifact half deliberately moves to `T6.3`. Commits `14eee96`,`135a950`,`a684816`,`f4a9411`,`f0c6fab`,`71eafb8`,`89d5fe1`, plus same-day review follow-ups `24c41e9` (Eof quit fix) and `ff602f4` (README Ninja prerequisite + §9 comment cleanup). |
@@ -277,6 +277,40 @@ Recording the reasons here so a future session does not "simplify" them again.
   clean file missed a real one on the next edit — the strongest available argument that the real build plus
   `lens_diagnostics source=lsp` are the only authorities, and that its "quick fixes" must never be applied.
 
+### Findings added 2026-09-27 (handoff session)
+
+- **The remaining verification work is split by OS, and only the Windows half has an artifact.** Windows: **W3
+  Nathan** owns `T3.3` (`docs/measurements/windows-{refresh,polling}.md`), `T3.4` (the CLion Run press and its
+  evidence) and the Windows artifact's distribution. Linux: **W1 Lorens** owns `T1.4`
+  (`docs/measurements/linux-{refresh,polling}.md`). **W4 Kim** then synthesizes `T5.3`. This is not a new
+  assignment — it is the split already written in `docs/measurements/README.md` (“per-machine recording
+  owners”), plan §T1.4 (“W1 records Linux; W4 synthesizes”) and plan §T3.3 (“W3 records”). The reason to state
+  it here is the failure mode: **do not let one member fill the other's table to make the repository look
+  finished.** A Windows-PE observation written into `linux-*.md` is a fabricated measurement, which
+  `docs/measurements/README.md` forbids in its first paragraph.
+- **`linux-refresh.md` and `linux-polling.md` name the wrong artifact, and no POSIX frozen binary exists.**
+  Both files' *Artifact under test* line is `frozen/csopesy.exe` — the Windows PE — while plan §7's T-0:00 check
+  is `sha256sum frozen/csopesy`, `README.txt` never documents the `./frozen/csopesy` invocation §2.3 claims,
+  and on W1's machine `frozen/` is **empty**. So `T1.4` is blocked on a *decision* (freeze a POSIX artifact, or
+  amend §7's expected path and name), not on the sweep technique. `T6.3` produced a Windows-only artifact by
+  design — the graded machine is Windows (professor answer #4) — so this is a plan/record gap, not a missing
+  build step. Correcting the two Linux files is **W1/W2's** edit; W3 must not do it.
+- **`docs/measurements/README.md`'s "every table says `PENDING (T6.3)`" is now stale, and it is W4's file.**
+  With `T6.3` produced, the Windows tables are pending on **`T3.3`** and the Linux ones on **`T1.4`** — a
+  different blocker with a different owner. The per-file `Status` lines inherit the same staleness. Recorded
+  here so the next session does not read "PENDING (T6.3)" as "blocked on the freeze" when the freeze is done.
+  **No value in any table was changed by this session.**
+- **`T6.3` froze the executable but did not distribute it, so the freeze is only half done.**
+  `docs/frozen-artifact.md` records the hash and the tag and `frozen/` is correctly gitignored, but the `A′`
+  policy (`REVIEW_ADJUDICATION.md` pt 18: *“Binary **never committed** (submission package / release asset)”*)
+  is the other half, and there is **no GitHub Release** in the repository (`gh` is not installed on W1's
+  machine, so this was checked from the repo, not the API). Until the Windows PE is attached to the
+  `quiz-frozen` release — or placed in the submission package — a member who clones the repo cannot obtain the
+  graded binary that `csopesy-quiz` names. Owned by **W3** (the Windows artifact) with W2.
+- **`8e54cdb` is the tip the handoff was written against.** Its three-OS CI run is green per the operator; the
+  run URL is not recorded in this file because the push was made from a session that did not capture it. If a
+  later session needs the link, `git log` plus the Actions tab is the source — do not invent a run id.
+
 ## 7. Session log (newest last)
 
 | Date | Stage | What changed | Artifact |
@@ -305,6 +339,7 @@ Recording the reasons here so a future session does not "simplify" them again.
 | 2026-09-24 | **T3.4 prerequisite (machine-checked)** | **The committed `csopesy-quiz` run configuration cannot load in CLion 2026.2.3 — verified statically, no GUI needed.** Scanned every `.jar` entry under `plugins/**` + `lib/**` and every plain file for `type="CustomBuildApplication"` → **0 hits**; the GUI's *Custom Build Application* entry is `com.jetbrains.cidr.cpp.execution.external.run.CLionExternalRunConfigurationType`, whose `ConfigurationTypeBase` id (read with `javap -c` on its constructor) is **`CLionExternalRunConfiguration`**; its display name is `external.run.configuration.name` = "Custom Build Application". Its executable comes from `ExecutableData.loadExternal` (attribute `RUN_PATH` / a custom build target), not the XML's `EXECUTABLE=`, so the attribute set is wrong too. **`csopesy-dev` was checked at the same time and is valid** (`CMakeRunConfiguration` = the registered id of `CMakeAppRunConfigurationType`). Updated `docs/clion-run-config.md` (evidence + GUI-recreation fallback) and `docs/frozen-artifact.md` (T6.3 pre-flight row + open-item cross-reference); **no source, test, header or run-config file changed**. This is the concrete T3.4 blocker now. | `docs/clion-run-config.md`, `docs/frozen-artifact.md`, `PLAN_V3_PROGRESS.md` |
 | 2026-09-24 | **T3.4 shared config (GUI output committed)** | **The working `csopesy-quiz` entry is now a tracked shared file.** The owner recreated it in the CLion 2026.2.3 GUI (Custom Build Application, `frozen/csopesy.exe`, project-root working dir, no arguments, external console) and shared it via *Store as project file* (workspace `RunManager` → `.idea/runConfigurations/csopesy-quiz.xml` under `ProjectRunConfigurationManager`, content otherwise identical). Committed: `type="CLionExternalRunConfiguration"`, `RUN_PATH="$PROJECT_DIR$/frozen/csopesy.exe"` + `TARGET_NAME/CONFIG_NAME="csopesy-frozen"` (definition in the newly-tracked `.idea/customTargets.xml`, hence the `.gitignore` exception), `USE_EXTERNAL_CONSOLE="true"`, **no `<method>` block** — a Run press cannot rebuild. **Correction recorded, not glossed:** the GUI entry as first created still had `CLION.EXTERNAL.BUILD` enabled (`workspace.xml` bytes) — the handoff's "no Build" claim was unverified and false; the task was removed before committing. Gate this session: `ctest --preset debug` 2/2, guard `OK (22 files scanned)`, 11/11 frozen hashes, frozen SHA-256 `a9cbc09e…1fd4f15f` unchanged, `--no-tty` smoke (`help` six lines, `exit` rc=0). **Still owed by the owner in the GUI:** press Run on the *shared* entry (external console, marquee + typing) and confirm the SHA-256 is unchanged — that press closes T3.4. Remaining Phase 2 after it: T1.4/T3.3 sweeps (frozen binary, D14), T5.3 synthesis, T6.1 PPT, T6.2 video. | `.idea/runConfigurations/csopesy-quiz.xml`, `.idea/customTargets.xml`, `.gitignore`, `docs/clion-run-config.md`, `docs/frozen-artifact.md`, `PLAN_V3_PROGRESS.md` |
 | 2026-09-27 | **S6 / P1 — T1.3 deferred assertions (W1)** | **T1.3's owed frame-write and command-effect assertions completed — no production code changed (their dependencies were W2/W4's and had landed).** 7 new tests in `tests/unit/test_scheduler.cpp`: (a) `only_the_marquee_thread_ever_writes_the_terminal` (a live worker, with the test thread posting through `drainInput`/`typeCommand`; every recorded writer id is one thread and it is **not** the input thread) and `every_write_carries_exactly_one_whole_frame` (each `write()` opens with cursor-home, splits into exactly `rows` CRLF-separated rows each exactly `cols` wide, and `outCopy()` accounts for every byte — so no partial and no concatenated frames); (b) `posted_keystroke_echo_is_written_without_waiting_for_the_refresh_deadline` (`refreshMs = 10000`; a keystroke at clock 5 still writes a frame while `cycles` stays put, and the redraw is consumed once); (c) `posted_stop_marquee_command_stops_the_process`, `posted_set_text_command_changes_the_animated_text` (also seen in the written band at `offset == bandWidth`), `posted_set_speed_command_moves_the_next_render_deadline` (40 ms early ⇒ no render, 60 ms ⇒ render — the command-path half the older *field*-setting test explicitly disclaimed), and `posted_exit_command_requests_quit_and_leaves_the_worker_alone` (`quit_` set, worker still rendering: only `stop_` ends it). **Red-before: a scratch `git worktree` at `cddba69`** (both dependencies still `TODO` stubs — `buildFrame` → `{}`, `feed` → `false`) running the new test file gave a **clean red: 16 assertions, exit 1, every failure the missing dependency**. The threaded test's `writers.front()` was guarded with `!writers.empty()` because the bare call aborted the stub run and hid six failures. **Green:** `OK 124 tests`; `ctest --preset debug` **2/2**; clean rebuild under `-Wall -Wextra` warning-free; `check_layers: OK (22 files scanned)`; **11/11** frozen hashes match; `grep -n 'sleep_' tests/unit/test_scheduler.cpp` prints nothing. **Finding for W1's next task:** `T6.3` froze only `frozen/csopesy.exe` (a Windows PE) while the plan's §7 expects `sha256sum frozen/csopesy`, so **T1.4's Linux sweep has no POSIX artifact to run** and `README.txt` never documents the `./frozen/csopesy` invocation §2.3 claims. Recorded, not faked. | `tests/unit/test_scheduler.cpp`, `PLAN_V3_PROGRESS.md` |
+| 2026-09-27 | **handoff — W3 scope** | **The remaining verification work is split by OS and the Windows handoff is written down, so a cold session does not re-derive it.** Recorded: W3/Nathan owns `T3.3` + `T3.4` + the Windows artifact's distribution and evidence; W1/Lorens owns `T1.4`; W4/Kim synthesizes `T5.3` — the split already in `docs/measurements/README.md` and plan §T1.4/§T3.3, restated here because the failure mode is one member filling another's table. Three gaps recorded: (1) `linux-{refresh,polling}.md` name `frozen/csopesy.exe` although no POSIX artifact exists and plan §7 expects `frozen/csopesy`; (2) `docs/measurements/README.md`'s blanket `PENDING (T6.3)` is stale now that `T6.3` is produced (Windows pends on `T3.3`, Linux on `T1.4`); (3) the `A′` distribution half is unfulfilled — no GitHub Release, `frozen/` empty on W1's machine. Added **§12**, the paste-ready W3 message (Windows-only scope, the frozen SHA-256 `a9cbc09e…1fd4f15f` / 186 436 bytes pre-check, the no-rebuild rule, the D14 take procedure, and the required report block). **No source, test, header, config, measurement or run-config file changed; no value in any measurement table was filled.** | `PLAN_V3_PROGRESS.md` |
 
 ## 8. Stage plan (S1–S6)
 
@@ -413,3 +448,123 @@ group on 2026-09-22 (operator-stated).** Kept as the record of what was sent:
 > **Before your first commit, run:** `cmake --preset debug && cmake --build --preset debug && ctest --preset debug`
 > (expect 1/1) and `bash scripts/check_layers.sh` (expect `OK (22 files scanned)`). If your build breaks on a
 > deleted header, you are reading v2.6 — `CONTRACTS.md`'s hash table is the authority on what is current.
+
+---
+
+## 12. Paste-ready W3 handoff (send to Nathan) — Windows: `T3.3` + `T3.4` + distribution
+
+Written 2026-09-27 against the `8e54cdb` tip, and kept here for the same reason §10 and §11 are: the message *is*
+the record of what was asked, and a lost chat must not cost us the prompt. **The scope is deliberately
+Windows-only** — the Linux sweep is W1/`T1.4` and the synthesis is W4/`T5.3`
+(`docs/measurements/README.md`; plan §T1.4, §T3.3).
+
+> **Subject: Nathan/W3 — finish the Windows side only (T3.3 + T3.4 + frozen-artifact evidence)**
+>
+> Repo `https://github.com/LorensTee/CSOPESY-MCO3`, from the latest `main` (`8e54cdb`; its three-OS CI run is
+> green). Complete the Windows side only:
+>
+> 1. **Update `docs/PLAN_V3_PROGRESS.md`** with the Windows `T3.3`/`T3.4` progress and the final evidence.
+> 2. **Complete `docs/measurements/windows-refresh.md` and `docs/measurements/windows-polling.md`** using the
+>    frozen Windows binary, recording the actual observations.
+> 3. **Complete the `T3.4` Windows CLion graded-run verification** and record the result in the appropriate
+>    existing `T3.4` evidence documentation, including the SHA-256-before/after-Run confirmation.
+> 4. **Verify and publish the frozen Windows executable** according to the existing **`A′` policy**: do **not**
+>    commit `frozen/csopesy.exe`; use the release/submission package.
+> 5. **Do not modify the Linux measurement files or invent/fill Linux results** — W1/Lorens owns `T1.4`.
+> 6. **Do not do a broad documentation cleanup** and do not modify W4/W2-owned files unless a specific `T3.4`
+>    evidence update requires it.
+>
+> The goal is that the Windows responsibilities (`T3.3` + `T3.4` + Windows artifact distribution/evidence) are
+> actually complete, while the Linux and unrelated documentation work stays with its owners.
+
+### 12.1 Verify the existing frozen executable first — do not rebuild by reflex
+
+The artifact was produced 2026-09-24 from source commit `4c5e8cf` and tagged `quiz-frozen`
+(`docs/frozen-artifact.md`):
+
+```text
+path      frozen\csopesy.exe
+SHA-256   a9cbc09e7ffbefda9f2e3714845995e0320fd349ac47fe7f531d15ec1fd4f15f
+size      186436 bytes
+built     Release, GCC 14.2.0 (MinGW-W64 UCRT), 0 warnings under -Wall -Wextra
+```
+
+```powershell
+certutil -hashfile frozen\csopesy.exe SHA256
+```
+
+* **Hash matches** → do **not** rebuild. The source that produced it has not changed since the freeze, and a
+  rebuild would invalidate the record (and the `quiz-frozen` tag) for no gain.
+* **File missing, or hash differs** → **stop and report before replacing it.** Then rebuild a clean Release
+  artifact from the frozen source and update `docs/frozen-artifact.md` and the tag *consistently* — never
+  silently swap the byte stream under a recorded hash.
+* If antivirus removes the executable, fix that first: this repository has already been bitten by exactly that
+  Windows security-software behaviour (`PLAN_V3_PROGRESS.md` §7, 2026-09-23 row — Norton denied *creating*
+  `csopesy.exe` under `build/`).
+
+### 12.2 `T3.4` — the CLion graded-run gate
+
+In CLion on the Windows machine, using the **shared** `csopesy-quiz` entry:
+
+* it loads with no warning and is the entry in `.idea/runConfigurations/csopesy-quiz.xml`
+  (`type="CLionExternalRunConfiguration"` — the earlier `CustomBuildApplication` id was not registered by
+  CLion 2026.2.3, `docs/clion-run-config.md`);
+* its executable is the frozen `frozen\csopesy.exe`;
+* **there is no Before-launch Build task** (the committed XML has no `<method>` block);
+* it runs in the recorded external console;
+* the marquee animates **while** the prompt accepts typing, and the ordinary interaction works;
+* Run rebuilds and relinks nothing.
+
+Record the SHA-256 **before** the press, press **Run**, then record it **again** after the program exits. It must
+still be `a9cbc09e…1fd4f15f`. That single press closes the last open `T3.4` row and the `T6.3` Step 0 row.
+
+**Evidence goes in the two existing `T3.4` records, and nowhere else:** the `T3.4` row in
+`docs/frozen-artifact.md` (and its §7 pre-flight table), and the `csopesy-quiz` gate in
+`docs/clion-run-config.md`. Record the Windows machine, the CLion version, the Run result, the before/after
+hashes, and the terminal-switch outcome. **Do not change the freeze policy.**
+
+### 12.3 `T3.3` — the Windows refresh/polling sweep (D14)
+
+Fill `docs/measurements/windows-refresh.md` and `docs/measurements/windows-polling.md` from the **frozen binary
+only**, following `docs/measurements/README.md`'s procedure exactly:
+
+```text
+for each take:
+  set the csopesy-quiz Program arguments to  --poll-ms=N --refresh-ms=M
+  press Run, observe the band/echo, record the row + the hardware/terminal it was observed on
+  change ONLY the arguments for the next take
+  never rebuild, never re-copy the executable
+```
+
+Fill observed rows, not estimates. The tables currently say `PENDING (T6.3)`; after `T3.3` they must not. Record
+the artifact SHA-256 once and confirm it is unchanged at the end of the sweep — that is the evidence every row
+describes the same build. Keep the honest limitation (`README.md`): these are **observed thresholds**, not
+per-keystroke latency figures (there is no telemetry in v3 by design, D4).
+
+### 12.4 Publish the Windows artifact — the `A′` policy, not `git add -f`
+
+**Never** `git add -f frozen\csopesy.exe`. `REVIEW_ADJUDICATION.md` pt 18 (`A′`) is explicit: the binary is
+**never committed** — it ships as a submission package / **release asset**. Once the artifact is verified,
+publish `frozen\csopesy.exe` as the Windows asset of the `quiz-frozen` release (create the release if it does
+not exist — there is currently none), or otherwise place it in the submission package. A clone of this
+repository does not contain the binary the graded run configuration names; until the release exists, that is a
+real gap, not a formality.
+
+### 12.5 Commit the evidence and report
+
+Commit the **tracked documentation/evidence changes only** (no `.exe`, no `.gitignore` change, no freeze-policy
+change), e.g. `docs: complete Windows frozen-run and measurement evidence`, and push to `main`. Then report:
+
+```text
+T3.4: PASS/FAIL
+T3.3: COMPLETE/INCOMPLETE
+Frozen SHA-256: <value>
+SHA before Run: <value>
+SHA after Run: <value>
+Release asset: <link>
+Commit: <hash>
+```
+
+The bar is that the Windows side is **actually closed** — not merely that the executable exists. What stays
+open for others afterwards: **W1's `T1.4`** (the Linux sweep, which needs a POSIX artifact or an amended §7
+path — see §6) and **W4's `T5.3`** synthesis once the Linux and Windows tables are both filled.
