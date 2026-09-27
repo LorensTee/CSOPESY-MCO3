@@ -1,8 +1,7 @@
-// src/features/commands/line_editor.cpp — the §3.11 line-editor rules (T2.3).
+// src/features/commands/line_editor.cpp — keyboard input and line editing.
 //
-// Raw mode disables echo, so the app echoes keystrokes itself. The editing state (line_ / message_ / quit_)
-// is frozen on Interpreter, so the keystroke path and its visibleSlice helper are defined here as members
-// of that type rather than on a second object. line_editor.hpp declares nothing of its own by design.
+// Raw mode disables terminal echo, so the application handles echo and editing.
+// Interpreter stores the line, message, and quit state. The visibleSlice() helper keeps the cursor visible.
 #include "csopesy/interpreter.hpp"
 
 #include <cstddef>
@@ -13,20 +12,20 @@ std::string visibleSlice(std::string_view buffer, int availWidth) {
   if (availWidth <= 0) return {};
   const std::size_t width = static_cast<std::size_t>(availWidth);
   if (buffer.size() <= width) return std::string(buffer);
-  // Show the tail: the prompt row is one fixed row, so the cursor stays visible instead of wrapping.
+  // Show the end of the buffer so the cursor stays visible on the fixed prompt row.
   return std::string(buffer.substr(buffer.size() - width));
 }
 
 bool Interpreter::feed(const KeyEvent& ev) {
   switch (ev.type) {
     case KeyType::Char: {
-      // Printable ASCII only: control bytes and non-ASCII keys are ignored on entry (§3.7 rule 7).
+      // Accept printable ASCII characters only. Ignore other character values.
       const unsigned char c = static_cast<unsigned char>(ev.ch);
       if (c >= 0x20 && c <= 0x7E) line_.push_back(ev.ch);
       return false;
     }
     case KeyType::Backspace:
-      if (!line_.empty()) line_.pop_back();        // the cursor is always at the end, so this is the last char
+      if (!line_.empty()) line_.pop_back();        // The cursor stays at the end, so remove the last character.
       return false;
     case KeyType::Enter: {
       const std::string submitted = line_;
@@ -38,14 +37,13 @@ bool Interpreter::feed(const KeyEvent& ev) {
       const std::string submitted = line_;
       line_.clear();
       message_ = executeLine(submitted);
-      // Raw mode has ISIG off, so Ctrl+C, Ctrl+D and a closed stdin all arrive as this one key. Requesting
-      // quit here is what makes §3.10's non-signal exit paths work: ConsoleApp observes quit_ right after
-      // postEvent and runs requestStop() -> join() before the terminal is restored.
+      // Treat EOF like a quit request after the current line is processed.
+      // ConsoleApp sees quit_ and stops the worker before it restores the terminal.
       quit_ = true;
       return true;
     }
     default:
-      return false;                                // arrows, Tab and Escape are ignored, with no state change
+      return false;                                // Ignore arrows, Tab, and Escape.
   }
 }
 
