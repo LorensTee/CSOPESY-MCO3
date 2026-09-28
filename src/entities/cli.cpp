@@ -51,7 +51,7 @@ void applyValueFlag(CliResult& result, const std::string& name, const std::strin
   bool negative = false;
   unsigned long long mag = 0;
   if (!wellFormedInteger(raw, negative, mag)) {
-    result.warnings.push_back(prefix + name + "=" + raw + ": not a number; keeping the default.");
+    result.warnings.push_back(prefix + name + "=" + raw + ": not a number; keeping the current value.");
     return;
   }
   const ClampReport report = (result.params.*set)(saturateToInt(mag, negative));
