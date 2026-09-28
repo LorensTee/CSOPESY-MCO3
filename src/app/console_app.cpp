@@ -16,7 +16,7 @@ namespace csopesy {
 namespace {
 
 // Run without raw mode, ANSI output, or a worker thread.
-// This mode lets the real binary run as a normal line-based program.
+// This mode runs the program as a normal line-based program.
 int runPlainLineMode(Parameters& params) {
   MarqueeProcess proc;
   Interpreter interp(params, proc);

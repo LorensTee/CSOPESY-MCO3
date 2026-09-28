@@ -35,11 +35,10 @@ Build
 
 Run
 ---
-  Start the executable from the source directory:
+  Start the executable from the source directory, so that the program finds config.txt:
 
       build\vs\Debug\csopesy.exe
 
-  Start it from the source directory, so that the program finds config.txt.
   The program restores the terminal when it exits.
 
 Configuration file
@@ -55,7 +54,8 @@ Configuration file
       refresh_ms    Marquee frame interval in milliseconds. Range: 1 to 10000.
       polling_ms    Maximum input wait in milliseconds. Range: 1 to 1000.
 
-  An unknown key or a malformed value produces a warning and does not stop the program.
+  An unknown key, a malformed line, or a malformed value produces a warning
+  and does not stop the program.
   A valid value outside its range is clamped and reported.
 
 Program arguments

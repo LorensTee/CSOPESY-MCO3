@@ -33,7 +33,6 @@ struct Parameters {
   std::string versionDate = "2026-09-27";  // Shown as "Version date: <date>". Empty is also valid.
 
   // Plain line mode. No raw mode, ANSI output, animation, or worker thread is used.
-  // This option is for development and CI.
   bool noTty = false;
 
   static constexpr int kRefreshMin = 1;

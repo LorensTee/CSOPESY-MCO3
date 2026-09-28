@@ -1,7 +1,7 @@
 // include/csopesy/terminal.hpp — platform terminal interface.
 //
-// Terminal provides the common interface used by the application on Windows, Linux, and macOS.
-// The platform implementation controls raw input, terminal size, console output, and the clock.
+// Terminal provides the common interface that the application uses.
+// The Windows implementation controls raw input, terminal size, console output, and the clock.
 #pragma once
 #include <memory>
 #include <string_view>
