@@ -1,20 +1,14 @@
-// src/app/scheduler.cpp — the marquee worker and input-thread scheduler API.
-//
-// The scheduler uses two threads, one mutex, and one condition variable.
-//   Input thread   : reads events and sends them to the interpreter.
-//                    It never writes a frame.
-//   Marquee thread : runs the worker loop and writes frames to the terminal.
-//
-// These rules prevent deadlocks and keep the lock scope small:
-//   1. Do not call tick() while mu_ is locked.
-//   2. Do not perform blocking terminal I/O while mu_ is locked.
-//   3. Read Terminal::size() before locking mu_.
-//
-// Use term_.nowMs() as the time source. <chrono> is only used to set the wait duration.
+// Run the marquee worker and coordinate input and terminal output.
+// The input thread handles events.
+// The worker thread builds and writes frames.
+// Use the mutex for shared state and the condition variable for worker wake-ups.
+// Read the terminal size before locking the mutex.
+// Do not perform terminal I/O while the mutex is locked.
+// Use term_.nowMs() for application time.
 #include <chrono>
 #include <string>
 
-#include "csopesy/interpreter.hpp"   // Keep app/ imports above features/commands imports.
+#include "csopesy/interpreter.hpp"
 #include "csopesy/scheduler.hpp"
 
 namespace csopesy {
@@ -25,7 +19,7 @@ Scheduler::Scheduler(Terminal& term, Parameters& params, Renderer& renderer, Int
 
 Scheduler::~Scheduler() {
   requestStop();
-  join();   // Keep the worker alive only until all objects it uses are still valid.
+  join();   // Wait for the worker before dependent objects are destroyed.
 }
 
 // --- input/command thread -------------------------------------------------------------------------
@@ -62,7 +56,7 @@ bool Scheduler::joinable() const { return worker_.joinable(); }
 
 // --- marquee/scheduler thread ---------------------------------------------------------------------
 void Scheduler::start() {
-  // worker_.joinable() is the started state. If thread creation fails, the scheduler stays unstarted.
+  // A joinable worker means the scheduler has started.
   if (worker_.joinable()) { return; }
   worker_ = std::thread([this] { run(); });
 }
@@ -74,21 +68,20 @@ int Scheduler::run() {
       if (stop_) { return 0; }
       const long long seen = wakeTick_;
 
-      // Wait for the render deadline, an input event, a wake request, a stop request, or pollingMs.
-      // The timed wait prevents a busy loop while the program is idle.
+      // Wake for a render deadline, input, an explicit wake request, a stop request, or pollingMs.
+      // The timed wait prevents a busy loop.
       cv_.wait_for(lk, std::chrono::milliseconds(pollTimeoutMsLocked()),
                    [this, seen] { return stop_ || dirty_ || wakeTick_ != seen; });
-      if (stop_) { return 0; }              // Release mu_ before tick().
+      if (stop_) { return 0; }
     }
-    (void)tick(nullptr);                    // postEvent() already delivered the input event.
+    (void)tick(nullptr);                    // Render due frame or process pending state.
   }
 }
 
 TickResult Scheduler::tick(const KeyEvent* ev) {
   TickResult res;
 
-  // Read the terminal size before locking. This call belongs to the marquee thread.
-  // Reading it first also gives the concurrency tests a clear point at which tick() has started.
+  // Read the terminal size before locking the mutex.
   const Size sz = term_.size();
   std::string frame;                        // Build the frame under the lock and write it after the lock.
   {
@@ -97,8 +90,8 @@ TickResult Scheduler::tick(const KeyEvent* ev) {
     bool redraw = false;
     if (ev != nullptr) { interp_.feed(*ev); redraw = true; }
 
-    // dirty_ requests the echo frame for a posted keystroke. The worker calls tick() with nullptr,
-    // so input echo does not wait for refreshMs.
+    // dirty_ requests an echo frame for a posted keystroke.
+    // The worker can render it without waiting for refreshMs.
     if (dirty_) { dirty_ = false; redraw = true; }
 
     const bool running = proc_.state == ProcessState::Running;
@@ -116,11 +109,10 @@ TickResult Scheduler::tick(const KeyEvent* ev) {
       }
     }
 
-    // The input thread owns interpreter quit state. The worker stops only when stop_ is set.
   }
 
-  // The marquee thread performs the only terminal write.
-  // Keep the write outside mu_ so slow console I/O cannot block input handling.
+  // Keep terminal output outside the mutex.
+  // Slow console I/O must not block input handling.
   if (!frame.empty()) {
     term_.write(frame);
     term_.flush();
@@ -140,13 +132,13 @@ SchedulerSnapshot Scheduler::snapshot() const {
 }
 
 // --- private --------------------------------------------------------------------------------------
-int Scheduler::pollTimeoutMsLocked() const {   // run() already holds mu_.
+int Scheduler::pollTimeoutMsLocked() const {
   long long ms = params_.pollingMs;
   if (proc_.state == ProcessState::Running) {
     const long long until = params_.refreshMs - (term_.nowMs() - proc_.lastRenderMs);
     if (until > 0 && until < ms) { ms = until; }
   }
-  if (ms < 1)    { ms = 1; }                   // Prevent a zero-duration busy loop.
+  if (ms < 1)    { ms = 1; }                   // Prevent a busy loop.
   if (ms > 1000) { ms = 1000; }
   return static_cast<int>(ms);
 }

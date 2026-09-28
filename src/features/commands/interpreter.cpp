@@ -138,7 +138,7 @@ std::string Interpreter::executeLine(const std::string& raw) {
     }
 
     case Cmd::Exit:
-      quit_ = true;                                // Only the input thread reads quit_.
+      quit_ = true;                                // Signal the application to exit.
       message_ = "Exiting CSOPESY. Goodbye!";
       break;
 
@@ -152,7 +152,7 @@ std::string Interpreter::executeLine(const std::string& raw) {
 
 bool Interpreter::quitRequested() const { return quit_; }
 
-std::string Interpreter::prompt() const { return "Command>"; }   // Return the fixed prompt.
+std::string Interpreter::prompt() const { return "Command>"; }
 
 std::string Interpreter::buffer() const { return line_; }
 

@@ -1,7 +1,5 @@
-// src/platform/terminal_posix.cpp — the Linux and macOS terminal backend.
-//
-// Terminal::create(), installShutdownHandlers(), and shutdownRequested() live in the selected platform file.
-// The rest of the application uses the Terminal interface and does not need platform checks.
+// Provide the terminal backend for Linux and macOS.
+// The rest of the application uses the Terminal interface.
 #include <cerrno>
 #include <csignal>
 #include <cstddef>
@@ -39,7 +37,7 @@ ReadResult readByte(int timeoutMs, unsigned char& out) {
   if (ready <= 0) { return ReadResult::Timeout; }   // Includes EINTR. The caller checks the shutdown flag.
   const ssize_t n = ::read(STDIN_FILENO, &out, 1);
   if (n < 0) { return ReadResult::Timeout; }
-  if (n == 0) { return ReadResult::Eof; }           // stdin is closed.
+  if (n == 0) { return ReadResult::Eof; }           // Standard input is closed.
   return ReadResult::Byte;
 }
 
@@ -54,9 +52,10 @@ class PosixTerminal final : public Terminal {
     termios raw = saved_;
     // Keep Enter as 0x0D and disable Ctrl+S/Ctrl+Q flow control.
     raw.c_iflag &= static_cast<tcflag_t>(~(ICRNL | INLCR | IXON));
-    // Disable output processing. The renderer writes its own CRLF row separators.
+    // Disable output processing. The renderer writes its own CRLF separators.
     raw.c_oflag &= static_cast<tcflag_t>(~OPOST);
-    // Disable line buffering, echo, and signal generation. The input layer handles these keys.
+    // Disable line buffering, echo, and signal generation.
+    // The input layer handles these keys.
     raw.c_lflag &= static_cast<tcflag_t>(~(ICANON | ECHO | ISIG));
     raw.c_cc[VMIN] = 0;
     raw.c_cc[VTIME] = 0;
@@ -74,7 +73,7 @@ class PosixTerminal final : public Terminal {
     if (::ioctl(STDOUT_FILENO, TIOCGWINSZ, &ws) != 0 && ::ioctl(STDIN_FILENO, TIOCGWINSZ, &ws) != 0) {
       return Size{};
     }
-    if (ws.ws_row == 0 || ws.ws_col == 0) { return Size{}; }   // Report an invalid size to the caller.
+    if (ws.ws_row == 0 || ws.ws_col == 0) { return Size{}; }   // Report an invalid size.
     return Size{static_cast<int>(ws.ws_row), static_cast<int>(ws.ws_col)};
   }
 
@@ -97,7 +96,7 @@ class PosixTerminal final : public Terminal {
       default: break;
     }
     if (b >= 0x20 && b <= 0x7E) { out = KeyEvent{KeyType::Char, static_cast<char>(b)}; return true; }
-    return false;                                      // Ignore other control bytes.
+    return false;
   }
 
   void write(std::string_view bytes) override {
@@ -125,7 +124,7 @@ class PosixTerminal final : public Terminal {
   }
 
  private:
-  // CSI and SS3 arrow sequences both end with the arrow letter.
+  // CSI and SS3 arrow sequences end with the arrow letter.
   bool decodeEscape(KeyEvent& out) {
     unsigned char seq = 0;
     if (readByte(kEscapeFollowUpMs, seq) != ReadResult::Byte) {
@@ -159,8 +158,8 @@ std::unique_ptr<Terminal> Terminal::create() { return std::make_unique<PosixTerm
 void installShutdownHandlers() {
   struct sigaction action {};
   action.sa_handler = &onShutdownSignal;
-  sigemptyset(&action.sa_mask);   // macOS defines sigemptyset as a macro, so do not qualify it.
-  action.sa_flags = 0;   // Do not restart poll(). The input thread must see EINTR and check the flag.
+  sigemptyset(&action.sa_mask);
+  action.sa_flags = 0;   // Let poll() return EINTR so the input thread can check the flag.
   ::sigaction(SIGINT, &action, nullptr);
   ::sigaction(SIGTERM, &action, nullptr);
 }

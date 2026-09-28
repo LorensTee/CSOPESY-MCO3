@@ -57,7 +57,6 @@ TextResult Parameters::setText(const std::string& t) {
 }
 
 Parameters Parameters::defaults() {
-  // Default member values already set every parameter.
   return {};
 }
 
