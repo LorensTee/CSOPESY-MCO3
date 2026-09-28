@@ -1,22 +1,22 @@
 # CSOPESY Marquee Operator — Implementation & Workload Plan (**v3**)
 
-**Status: COMPLETE — and v3.0 is APPLIED to the tree (T0.6 landed 2026-09-22).**
+**Status: COMPLETE — v3.0 was applied to the tree, and v3.1 adds the required optional `config.txt` defaults layer (D19, 2026-09-28).**
 Stages S1–S4 have landed: §0, §1, §2, §3.0, §3.1–§3.12 (the delta contract), §4 (workstreams + RACI),
 §5 (task backlog, incl. **T0.6**) and **§6–§10** (definition of done + A1–A12, runbook, risks,
 the professor-answer record, self-review + revision log). **Read `docs/PLAN_V3_PROGRESS.md` first** — it says
 what is done, what is next, and what is blocked.
 
-**The headers on disk ARE v3.0.** T0.6 was ratified by W2 Byron under §4.5 and landed as commit **`d6379df`**:
-the header set went 13 → 11, `CONTRACTS.md`'s marker is **v3.0**, and the guard reports
+**The headers on disk are now v3.1.** T0.6 was ratified by W2 Byron under §4.5 and landed as commit **`d6379df`**. D19 then added the `config.txt` defaults layer and updated `cli.hpp`/`CONTRACTS.md`:
+the header set remains 11, `CONTRACTS.md`'s current marker is **v3.1**, and the guard reports
 `check_layers: OK (22 files scanned)`. So §5.0's **D1 gate** — the ratification — is satisfied and recorded as
 **D18**; everything below describes the tree as it now stands, and the next work is **Phase 1** (step 5 of
 `PLAN_V3_PROGRESS.md` §9), not any more migration.
 
-**Version:** v3.0 · **Established:** 2026-09-22 · **Deadline:** Monday **2026-09-28** (revised from
+**Version:** v3.1 · **Established:** 2026-09-28 · **Base contract:** v3.0 established 2026-09-22 · **Deadline:** Monday **2026-09-28** (revised from
 2026-09-23 on 2026-09-22 — D17, `PLAN_V3_PROGRESS.md` §6) · **Supersedes:** `docs/IMPLEMENTATION_PLAN_v2.md`
 (v2.6, 2026-09-16 — kept in place, marked superseded, never edited again).
 
-**What v3 is, in one sentence:** v2.6 with the professor's five answers applied — the `.ini` config system removed (v3.1 added an optional `config.txt` defaults layer, D19), no ASCII-art
+**What v3 is, in one sentence:** v2.6 with the professor's five answers applied — the `.ini` config system removed; v3.1 adds an optional `config.txt` defaults layer (D19), no ASCII-art
 glyph engine, no `marquee_row`, no `--diag`, no `--measure` telemetry, no `FrameBuffer` diffing and no injected
 clock — and with everything Phase 0 already verified (two threads, FSD layers, the contract freeze, the 3-OS CI
 matrix, the zero-dependency harness) deliberately kept.
@@ -32,7 +32,7 @@ matrix, the zero-dependency harness) deliberately kept.
 | Question | Answer |
 | --- | --- |
 | How should this be built? | §5 (task backlog). The unchanged task bodies it names still live in v2 §5 (D16); §3.0 below says which v2 text no longer applies. |
-| What is the interface? | §3 (contracts) + `include/csopesy/*.hpp`. The headers on disk are **v3.0** (landed `d6379df`); `CONTRACTS.md`'s hash table is the authority. |
+| What is the interface? | §3 (contracts) + `include/csopesy/*.hpp`. The headers on disk are **v3.1**; `CONTRACTS.md`'s current hash table is the authority. |
 | Why is it like this? | `docs/REVIEW_ADJUDICATION.md` for decisions up to v2.6; §3.0 and the v3 revision log (§10) for the v3 deltas; `docs/PLAN_V3_PROGRESS.md` §4 for the dated decision list. |
 | What is graded? | §1 (spec decode) and §6 (definition of done, acceptance cases A1–A12). |
 | What may I not "simplify"? | §3.0 table B — the kept list — and `AGENTS.md` §6. |
@@ -947,7 +947,7 @@ four are deleted by D2/D3/D6, and v2 §T4.1's two hardcoded assertion values (`"
 | Task | Deliverable | Test that must fail first | Notes |
 | --- | --- | --- | --- |
 | **T2.1** — `Parameters` | `parameters.cpp`: clamping + the ASCII text rule | `setRefresh`/`setPolling` clamp and report; `setText` returns `Empty` for blank, `NonAscii` for any byte outside `0x20`–`0x7E`, and `Ok` otherwise with internal space runs preserved | §3.5. **Do not** re-add `asciiArt`/`marqueeRow`/`measurePath` |
-| **T2.2** — the CLI parser (was "config parser") | `cli.cpp`: `parseCli`, `CliResult` | unknown flag warns and continues; malformed/absent value warns and keeps the default; out-of-range is clamped **and reported**; `--refresh-ms 50` (two tokens) warns; a repeated flag's last value wins; `--config=…` warns like any unknown flag | §3.6. The v2 rule survives intact: **a typo must never cost the quiz** |
+| **T2.2** — the CLI parser and config defaults | `cli.cpp`: `parseCli`, `loadConfigFile`, `CliResult` | unknown flag warns and continues; malformed/absent value warns and keeps the default; out-of-range is clamped **and reported**; `--refresh-ms 50` (two tokens) warns; a repeated flag's last value wins; `--config=…` warns like any unknown flag | §3.6 plus D19. The v2 rule survives intact: **a typo must never cost the quiz** |
 | **T2.3** — line editor | `line_editor.cpp` | printable ASCII appends; Backspace deletes; Enter submits; arrows/Tab/control bytes ignored; `visibleSlice` shows the tail so the cursor stays visible | v2 §T2.3, plus §3.11's ASCII-on-entry delta |
 | **T2.4** — interpreter + response table | `interpreter.cpp` | every §3.7 row, including the new non-ASCII rejection; `HELP` is unrecognized; `5abc` is a `Usage:` error; `-5` clamps and reports | v2 §T2.4's body is normative; only the `set_text` outcomes grew (three, not two) |
 | **T2.5** — `main.cpp` + `ConsoleApp` | the graded entry path + `--no-tty` plain line mode | the real-binary **smoke test** (`tests/smoke/`) driving stdin lines in plain line mode; exit code 0; terminal restored | v2 §T2.5's body is normative; `main` now calls `parseCli` instead of loading a file. The plain-line path starts **no worker thread** |
