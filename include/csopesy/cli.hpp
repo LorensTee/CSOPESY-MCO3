@@ -10,7 +10,7 @@
 //
 // Invalid input produces a warning and does not stop startup.
 // A valid value outside its range is clamped.
-// When an option appears more than once, the last value wins.
+// When an option appears more than once, the parser applies the last value.
 #pragma once
 #include <string>
 #include <vector>
@@ -28,7 +28,7 @@ struct CliResult {
 // An unknown key, a malformed line, and a malformed value each produce a warning and are ignored.
 // An out-of-range value is clamped and reported.
 // A missing or unreadable file returns the built-in defaults with no warning, so the file is optional.
-// parseCli calls this function for config.txt. Tests call it directly to name another file.
+// parseCli calls this function for config.txt. Callers may specify an alternate file path.
 CliResult loadConfigFile(const std::string& path);
 
 // args does not include argv[0].

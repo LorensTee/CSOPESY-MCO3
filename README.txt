@@ -3,10 +3,10 @@ CSOPESY MCO3 — Marquee Console
 
 Members
 -------
-  W1  Lorens   (Linux)
-  W2  Byron    (Linux + Windows)
-  W3  Nathan   (Windows)
-  W4  Kim      (macOS + Windows)
+  Lorens   (Linux)
+  Byron    (Linux + Windows)
+  Nathan   (Windows)
+  Kim      (macOS + Windows)
 
 Entry file
 ----------
@@ -89,7 +89,7 @@ Program arguments
 
   Use the --flag=value form.
   Unknown flags and malformed values produce a warning.
-  The current value is kept when a value is invalid.
+  The parser keeps the current value when a value is invalid.
 
   Precedence:
       runtime command
@@ -167,5 +167,3 @@ Threads
   The threads share one mutex and one condition variable.
   The exit command and Ctrl+C stop the worker.
   The worker is joined before the terminal is restored.
-
-  See docs/threading-model.md for the full threading description.

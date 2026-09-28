@@ -3,7 +3,7 @@
 // Invalid input does not stop startup.
 // Unknown names and invalid values produce a warning and keep the current value.
 // Values outside their allowed range are clamped and reported.
-// When an option is repeated, the last value wins.
+// When an option is repeated, the parser applies the last value.
 #include "csopesy/cli.hpp"
 
 #include <cstddef>

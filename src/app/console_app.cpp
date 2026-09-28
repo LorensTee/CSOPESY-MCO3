@@ -82,7 +82,7 @@ int ConsoleApp::run() {
   scheduler.requestStop();
   scheduler.join();   // Wait for the worker to stop before shutdown.
 
-  // The worker has stopped, so the main thread can write the goodbye line.
+  // The worker has stopped, so the main thread can write the exit message.
   term_.write("Exiting CSOPESY. Goodbye!\r\n");
   term_.flush();
   return 0;

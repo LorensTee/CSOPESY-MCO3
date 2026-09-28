@@ -1,22 +1,18 @@
-# CMakeLists.txt — §T0.2. Reproduced from the plan verbatim; do not "simplify" it.
+# CMakeLists.txt — build configuration for csopesy.
 cmake_minimum_required(VERSION 3.21)     # presets schema v3 + VS 17 2022 generator both require 3.21
 project(csopesy_marquee CXX)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
-# Warning flags. Written as a plain if/else ON PURPOSE. The tempting one-liner
-#   add_compile_options($<$<CXX_COMPILER_ID:MSVC>:/W4>$<$<NOT:$<CXX_COMPILER_ID:MSVC>>:-Wall -Wextra>)
-# is split by CMake's argument parser at the space inside the generator expression: CMake *configures* cleanly
-# and then fails at compile time with `c++: error: unrecognized command-line option '-Wextra>'` (confirmed on
-# CMake 4.3 + GCC 16). Do not "simplify" this back into one line.
+# Warning flags. Keep as if/else. A single generator expression with space-separated
+# flags causes CMake argument parsing errors with GCC/Clang at compile time.
 if(MSVC)
   add_compile_options(/W4)
 else()
   add_compile_options(-Wall -Wextra)
 endif()
 
-# std::thread needs -pthread on POSIX (GCC/Clang); Threads::Threads is CMake's portable answer and a no-op on
-# MSVC. Without it the POSIX build fails to LINK with `undefined reference to pthread_create` — the compile
-# succeeds, so this is only caught at link time on a machine you may not be holding.
+# POSIX systems require -pthread to link std::thread. Threads::Threads provides
+# portable flags across POSIX and MSVC to prevent link-time undefined references.
 find_package(Threads REQUIRED)
 
 set(CORE_SOURCES
@@ -47,8 +43,7 @@ add_executable(csopesy_tests
 target_include_directories(csopesy_tests PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/tests/support)
 target_link_libraries(csopesy_tests PRIVATE csopesy_core)
 add_test(NAME unit COMMAND csopesy_tests)
-# The scheduler tests now drive a real worker thread. A missing join would hang them forever; a bounded timeout
-# turns that hang into a red test instead of a stuck CI job. 60 s is ~100x the suite's real runtime.
+# Bounded timeout prevents test execution from hanging if a worker thread join fails.
 set_tests_properties(unit PROPERTIES TIMEOUT 60)
 # Portable end-to-end smoke test: no shell, no `printf`, no guessed binary path, no *nix-only syntax.
 # $<TARGET_FILE:csopesy> resolves to the real artifact on every generator (VS puts it in build/vs/Debug).

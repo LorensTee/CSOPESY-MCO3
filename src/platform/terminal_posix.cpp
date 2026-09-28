@@ -25,7 +25,7 @@ volatile std::sig_atomic_t g_shutdownRequested = 0;
 
 void onShutdownSignal(int) { g_shutdownRequested = 1; }
 
-// A bare Esc may be the start of an arrow-key sequence.
+// A standalone escape character may be the start of an arrow-key sequence.
 // Wait briefly for the next byte before treating it as a standalone Esc key.
 constexpr int kEscapeFollowUpMs = 5;
 

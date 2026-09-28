@@ -42,8 +42,8 @@ const char* const kHelp =
     "  set_speed      - sets the marquee animation refresh in milliseconds\n"
     "  exit           - terminates the console";
 
-// Parse the complete integer. Store large magnitudes with saturation so they can be clamped instead of
-// being rejected or partly parsed.
+// Parse the complete integer. Store large magnitudes with saturation to clamp them rather than reject
+// or partially parse them.
 bool parseFullInteger(const std::string& s, int& out) {
   if (s.empty()) return false;
   std::size_t i = 0;

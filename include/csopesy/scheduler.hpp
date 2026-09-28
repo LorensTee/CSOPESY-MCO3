@@ -51,7 +51,7 @@ class Scheduler {
   int run();             // Run the worker loop until a stop is requested.
 
   // Advance the scheduler by one step.
-  // Production calls tick(nullptr) from the worker. The event form is for deterministic tests.
+  // Pass nullptr to tick the worker clock, or pass an event to process input deterministically.
   TickResult tick(const KeyEvent* ev);
 
   // Return the wait time before the worker checks again.
