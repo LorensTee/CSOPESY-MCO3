@@ -137,7 +137,7 @@ TEST(malformed_number_keeps_default_and_warns) {
   const CliResult r = run({"--refresh-ms=abc"});
   CHECK_EQ(r.params.refreshMs, 100);
   CHECK_EQ(r.warnings.size(), size_t{1});
-  CHECK_STR(warningAt(r, 0), "--refresh-ms=abc: not a number; keeping the default.");
+  CHECK_STR(warningAt(r, 0), "--refresh-ms=abc: not a number; keeping the current value.");
 }
 
 TEST(malformed_number_never_partially_parses) {
@@ -230,10 +230,10 @@ TEST(config_ignores_comments_blank_lines_and_surrounding_whitespace) {
   CHECK_EQ(r.warnings.size(), size_t{0});
 }
 
-TEST(config_malformed_value_warns_and_keeps_default) {
-  TempConfig cfg("refresh_ms=abc\n");
+TEST(config_malformed_value_warns_and_keeps_current_value) {
+  TempConfig cfg("refresh_ms=250\nrefresh_ms=abc\n");
   const CliResult r = loadConfigFile(cfg.path());
-  CHECK_EQ(r.params.refreshMs, 100);
+  CHECK_EQ(r.params.refreshMs, 250);
   CHECK_EQ(r.warnings.size(), size_t{1});
   CHECK(hasWarning(r, "not a number"));
 }
@@ -275,6 +275,14 @@ TEST(cli_flag_overrides_the_config_value) {
   CHECK_EQ(r.params.refreshMs, 40);                  // the flag wins
   CHECK_EQ(r.params.pollingMs, 50);                  // config still supplies the field the flag omitted
   CHECK_EQ(r.warnings.size(), size_t{0});
+}
+
+TEST(cli_malformed_value_keeps_config_value) {
+  TempConfig cfg("refresh_ms=250\n");
+  const CliResult r = parseCli({"--refresh-ms=abc"}, cfg.path());
+  CHECK_EQ(r.params.refreshMs, 250);
+  CHECK_EQ(r.warnings.size(), size_t{1});
+  CHECK_STR(warningAt(r, 0), "--refresh-ms=abc: not a number; keeping the current value.");
 }
 
 TEST(config_value_applies_when_no_flag_is_given) {
