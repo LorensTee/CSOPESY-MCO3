@@ -1,10 +1,8 @@
-// src/entities/cli.cpp — command-line option parsing and the optional config.txt defaults.
-//
-// Parameters are applied in this order:
-// runtime command, then command-line option, then config.txt, then built-in default.
-// Invalid input does not stop startup. An unknown key or option, a malformed value, and a missing value
-// each produce a warning and keep the current value.
-// A valid value outside its range is clamped and reported.
+// Parse command-line options and optional config.txt defaults.
+// Apply values in this order: runtime command, command-line option, config.txt, built-in default.
+// Invalid input does not stop startup.
+// Unknown names and invalid values produce a warning and keep the current value.
+// Values outside their allowed range are clamped and reported.
 // When an option is repeated, the last value wins.
 #include "csopesy/cli.hpp"
 
@@ -26,7 +24,7 @@ bool wellFormedInteger(const std::string& s, bool& negative, unsigned long long&
     negative = s[0] == '-';
     i = 1;
   }
-  if (i >= s.size()) return false;               // A sign without digits is not a number.
+  if (i >= s.size()) return false;
   mag = 0;
   for (; i < s.size(); ++i) {
     if (s[i] < '0' || s[i] > '9') return false;
@@ -39,15 +37,15 @@ bool wellFormedInteger(const std::string& s, bool& negative, unsigned long long&
 
 int saturateToInt(unsigned long long mag, bool negative) {
   if (negative) {
-    if (mag >= 2147483648ULL) return -2147483647 - 1;   // INT_MIN
+    if (mag >= 2147483648ULL) return -2147483647 - 1;
     return -static_cast<int>(mag);
   }
-  if (mag > 2147483647ULL) return 2147483647;           // INT_MAX
+  if (mag > 2147483647ULL) return 2147483647;
   return static_cast<int>(mag);
 }
 
-// Use the same parsing path for both numeric inputs, because they differ only in their bound and field.
-// A non-empty prefix names the source of a warning. The option path passes no prefix.
+// Use the same parsing path for config values and command-line values.
+// The prefix identifies the source in config-file warnings.
 void applyValueFlag(CliResult& result, const std::string& name, const std::string& raw,
                     ClampReport (Parameters::*set)(int), const std::string& prefix = "") {
   bool negative = false;
@@ -75,9 +73,9 @@ std::string trim(const std::string& s) {
 }  // namespace
 
 CliResult loadConfigFile(const std::string& path) {
-  CliResult result;                       // The built-in defaults are the base layer.
+  CliResult result;                       // Start with the built-in defaults.
   std::ifstream in(path, std::ios::binary);
-  if (!in) return result;                 // The file is optional, so a missing file is silent.
+  if (!in) return result;                 // The config file is optional.
 
   const std::string prefix = path + ": ";
   std::string line;
@@ -109,10 +107,10 @@ CliResult loadConfigFile(const std::string& path) {
 }
 
 CliResult parseCli(const std::vector<std::string>& args, const std::string& configPath) {
-  CliResult result = loadConfigFile(configPath);   // config.txt is the layer below the options.
+  CliResult result = loadConfigFile(configPath);   // Load config defaults before CLI options.
   for (const std::string& token : args) {
     if (token == "--no-tty") {
-      result.params.noTty = true;                // This option takes no value.
+      result.params.noTty = true;
     } else if (token.rfind("--refresh-ms=", 0) == 0) {
       applyValueFlag(result, "--refresh-ms", token.substr(13), &Parameters::setRefresh);
     } else if (token.rfind("--poll-ms=", 0) == 0) {

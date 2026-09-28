@@ -1,15 +1,12 @@
-// src/platform/terminal_win32.cpp — the Windows terminal backend.
-//
-// Terminal::create(), installShutdownHandlers(), and shutdownRequested() live in the selected platform file.
-// The rest of the application uses the Terminal interface and does not need platform checks.
-//
-// Save the console input and output modes together.
-// Input uses _getch() style behavior with no echo, no line buffering, no Ctrl+C translation, and no QuickEdit.
-// Output enables VT processing so the renderer's ANSI sequences work.
-#define WIN32_LEAN_AND_MEAN   // Limit windows.h to the console APIs used here.
+// Provide the terminal backend for Windows.
+// The rest of the application uses the Terminal interface.
+// Save the console input and output modes so they can be restored.
+// Input uses _getch() without echo or line buffering.
+// Output enables VT processing for the renderer's ANSI sequences.
+#define WIN32_LEAN_AND_MEAN
 #define NOMINMAX
 #ifndef _WIN32_WINNT
-#define _WIN32_WINNT 0x0600   // GetTickCount64.
+#define _WIN32_WINNT 0x0600
 #endif
 #include <windows.h>
 
@@ -52,7 +49,7 @@ class Win32Terminal final : public Terminal {
   Win32Terminal() : in_(::GetStdHandle(STD_INPUT_HANDLE)), out_(::GetStdHandle(STD_OUTPUT_HANDLE)) {}
 
   ~Win32Terminal() override {
-    if (g_active == this) { g_active = nullptr; }   // The restore path must not use a destroyed object.
+    if (g_active == this) { g_active = nullptr; }   // Prevent the restore path from using this object.
     restore();
   }
 
@@ -64,7 +61,7 @@ class Win32Terminal final : public Terminal {
     }
 
     // Enable VT output before changing input.
-    // DISABLE_NEWLINE_AUTO_RETURN lets the renderer control CRLF output on both platforms.
+    // DISABLE_NEWLINE_AUTO_RETURN lets the renderer control CRLF output.
     DWORD outMode = savedOut_;
     outMode |= static_cast<DWORD>(ENABLE_VIRTUAL_TERMINAL_PROCESSING | DISABLE_NEWLINE_AUTO_RETURN);
     if (!::SetConsoleMode(out_, outMode)) {
@@ -99,11 +96,11 @@ class Win32Terminal final : public Terminal {
     const DWORD waitMs = timeoutMs < 0 ? INFINITE : static_cast<DWORD>(timeoutMs);
 
     // Wait on the console handle instead of polling _kbhit().
-    // This avoids a busy loop and keeps input timing stable.
+    // This avoids a busy loop.
     if (::WaitForSingleObject(in_, waitMs) != WAIT_OBJECT_0) { return false; }
     if (_kbhit() == 0) {
       // Remove input records that _getch() does not return.
-      // Leave the first key-down record in the queue for the next call.
+      // Leave the first key-down record for the next call.
       drainFilteredRecords();
       return false;
     }
@@ -148,7 +145,7 @@ class Win32Terminal final : public Terminal {
   }
 
   // Consume console records that _getch() does not return.
-  // Stop at the first key-down record so a new key remains for the next readEvent() call.
+  // Stop at the first key-down record so the next readEvent() call can read it.
   void drainFilteredRecords() {
     for (;;) {
       INPUT_RECORD rec{};
@@ -161,7 +158,7 @@ class Win32Terminal final : public Terminal {
 
   bool decode(int c, KeyEvent& out) {
     if (c == EOF) { out = KeyEvent{KeyType::Eof, 0}; return true; }
-    if (c == 0 || c == 224) { return decodeExtended(out); }   // Windows extended-key lead bytes.
+    if (c == 0 || c == 224) { return decodeExtended(out); }   // Extended-key lead bytes.
     switch (c) {
       case 0x0D:
       case 0x0A: out = KeyEvent{KeyType::Enter, 0}; return true;
@@ -188,7 +185,7 @@ class Win32Terminal final : public Terminal {
       case 80: out = KeyEvent{KeyType::ArrowDown, 0}; return true;
       case 75: out = KeyEvent{KeyType::ArrowLeft, 0}; return true;
       case 77: out = KeyEvent{KeyType::ArrowRight, 0}; return true;
-      default: break;   // Ignore Insert, Delete, Home, End, and function keys.
+      default: break;   // Ignore other extended keys.
     }
     return false;
   }
@@ -197,7 +194,7 @@ class Win32Terminal final : public Terminal {
   HANDLE out_;
   DWORD savedIn_ = 0;
   DWORD savedOut_ = 0;
-  bool raw_ = false;   // True after raw input and VT output modes replace the saved modes.
+  bool raw_ = false;   // True when raw input and VT output modes are active.
 };
 
 void restoreActiveTerminal() {
@@ -208,7 +205,7 @@ void restoreActiveTerminal() {
 
 std::unique_ptr<Terminal> Terminal::create() {
   // Register one exit handler as a backup.
-  // The RAII guard in main is the normal restore path.
+  // TerminalGuard in main is the normal restore path.
   static const bool registered = std::atexit(&restoreActiveTerminal) == 0;
   (void)registered;
   auto terminal = std::make_unique<Win32Terminal>();

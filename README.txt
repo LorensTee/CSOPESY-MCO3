@@ -1,79 +1,171 @@
 CSOPESY MCO3 — Marquee Console
-==============================
+================================
 
 Members
 -------
   W1  Lorens   (Linux)
-  W2  Byron    (Linux + Windows)   <- contracts, build, CLI, interpreter
+  W2  Byron    (Linux + Windows)
   W3  Nathan   (Windows)
   W4  Kim      (macOS + Windows)
 
 Entry file
 ----------
-  src/main.cpp                      function main()
-  src/app/console_app.cpp           class csopesy::ConsoleApp  (owns the run loop)
+  src/main.cpp
+      Contains function main().
 
-Build (needs a C++17 compiler, CMake 3.21+ and Ninja — the presets below pin the Ninja generator)
------------------------------------------------------------------------------------------------------------------
-  POSIX (Linux / macOS):
-      cmake --preset debug
-      cmake --build --preset debug
-      ctest  --preset debug
+  src/app/console_app.cpp
+      Contains class csopesy::ConsoleApp.
+      This class owns the application run loop.
 
-  Windows (Visual Studio 17 2022):
-      cmake --preset windows-vs
-      cmake --build --preset windows-vs
-      ctest  --preset windows-vs
+Build requirements
+------------------
+  C++17 compiler
+  CMake 3.21 or later
+  Ninja
 
-  Release build (the configuration used for the submitted artifact):
-      cmake --preset release && cmake --build --preset release
+POSIX build
+-----------
+  cmake --preset debug
+  cmake --build --preset debug
+  ctest --preset debug
+
+Windows build
+-------------
+  cmake --preset windows-vs
+  cmake --build --preset windows-vs
+  ctest --preset windows-vs
+
+Release build
+-------------
+  This is the configuration used for the submitted artifact.
+
+  cmake --preset release
+  cmake --build --preset release
 
 Run
 ---
-  POSIX:    ./build/debug/csopesy
-  Windows:  build\vs\Debug\csopesy.exe
+  POSIX:
+      ./build/debug/csopesy
 
-  Plain line mode (no raw mode, no ANSI, no animation, no worker thread; dev/CI only):
+  Windows:
+      build\vs\Debug\csopesy.exe
+
+Plain line mode
+---------------
+  This mode disables raw mode, ANSI output, animation, and the worker thread.
+  Use it for development and CI only.
+
       csopesy --no-tty
 
-Default parameters file (optional)
-----------------------------------
-  config.txt in the working directory supplies defaults; if it is absent, the built-in defaults
-  below are used unchanged. One `key=value` per line; blank lines and lines starting with `#`
-  are ignored. Recognized keys: refresh_ms, polling_ms. Unknown keys and malformed values warn
-  and are ignored; out-of-range values are clamped and reported.
+Configuration file
+------------------
+  The optional config.txt file is read from the working directory.
+
+  If config.txt is absent, the program uses its built-in defaults.
+
+  Use one key=value pair per line.
+  Blank lines are ignored.
+  Lines that start with # are ignored.
+
+  Recognized keys:
+      refresh_ms
+      polling_ms
+
+  Unknown keys and malformed values produce a warning and are ignored.
+  Values outside the allowed range are clamped and reported.
 
 Program arguments
 -----------------
-  --no-tty            plain line mode; dev/CI only, never used in the graded run
-  --refresh-ms=N      marquee refresh in ms; clamped to [1, 10000] and reported
-  --poll-ms=N         max idle wait in ms;   clamped to [1, 1000]  and reported
+  --no-tty
+      Run in plain line mode. Use for development and CI only.
 
-  `--flag=value` is the only accepted form. An unknown flag or a malformed value prints a
-  warning and keeps the current value: a typo never aborts startup. Precedence is
-  runtime command > CLI flag > config.txt > built-in default.
+  --refresh-ms=N
+      Set the marquee refresh interval in milliseconds.
+      Allowed range: 1 to 10000.
 
-Runtime commands (case-sensitive; type `help` for the same list)
-----------------------------------------------------------------
-  help                        displays the commands and their descriptions
-  start_marquee               starts the marquee animation
-  stop_marquee                stops the marquee animation
-  set_text <text>             sets the marquee text (printable ASCII only)
-  set_speed <milliseconds>    sets the refresh interval (clamped to [1, 10000])
-  exit                        terminates the console and restores the terminal
+  --poll-ms=N
+      Set the maximum idle wait in milliseconds.
+      Allowed range: 1 to 1000.
 
-Parameters (defaults; the four that set values are reachable at runtime)
------------------------------------------------------------------------
-  text          "CSOPESY"   set_text target; printable ASCII 0x20-0x7E
-  refresh_ms    100         set_speed target; [1, 10000]
-  polling_ms    10          max idle wait when nothing is ready; [1, 1000]
-  developers    Ang, Byron Scott; Laborada, Nathan; Sotingco, Kimbery Wynelle; Tee, John Lorens
-  version_date  2026-09-27
-  no_tty        false       --no-tty; dev/CI only
+  Use the --flag=value form.
+  Unknown flags and malformed values produce a warning.
+  The current value is kept when a value is invalid.
+
+  Precedence:
+      runtime command
+      command-line option
+      config.txt
+      built-in default
+
+Runtime commands
+----------------
+  Commands are case-sensitive.
+
+  help
+      Display the commands and their descriptions.
+
+  start_marquee
+      Start the marquee animation.
+
+  stop_marquee
+      Stop the marquee animation.
+
+  set_text <text>
+      Set the marquee text.
+      The text must contain printable ASCII characters.
+
+  set_speed <milliseconds>
+      Set the refresh interval.
+      Allowed range: 1 to 10000.
+
+  exit
+      Terminate the console and restore the terminal.
+
+Parameters
+----------
+  text
+      Default: CSOPESY
+      set_text target.
+      Printable ASCII range: 0x20 to 0x7E.
+
+  refresh_ms
+      Default: 100 ms.
+      set_speed target.
+      Allowed range: 1 to 10000.
+
+  polling_ms
+      Default: 10 ms.
+      Maximum idle wait when no input is ready.
+      Allowed range: 1 to 1000.
+
+  developers
+      Ang, Byron Scott
+      Laborada, Nathan
+      Sotingco, Kimbery Wynelle
+      Tee, John Lorens
+
+  version_date
+      2026-09-27
+
+  no_tty
+      Default: false.
+      Enabled by --no-tty.
+      Development and CI only.
 
 Threads
 -------
-  In normal TTY mode, the program runs two threads: one reads your keystrokes and interprets commands, and one
-  animates the marquee and owns the screen (it is the only writer of the terminal). They share
-  exactly one mutex and one condition variable; `exit`/Ctrl+C stop the worker and join it before
-  the terminal is restored. See docs/threading-model.md for the full contract.
+  Normal TTY mode uses two threads.
+
+  Input thread:
+      Reads keyboard events.
+      Processes commands.
+
+  Marquee thread:
+      Animates the marquee.
+      Writes terminal frames.
+
+  The threads share one mutex and one condition variable.
+  The exit command and Ctrl+C stop the worker.
+  The worker is joined before the terminal is restored.
+
+  See docs/threading-model.md for the full threading description.

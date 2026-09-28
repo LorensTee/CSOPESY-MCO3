@@ -1,7 +1,5 @@
-// src/features/marquee/renderer.cpp — marquee scroll math and frame assembly.
-//
-// Each frame is one string. The renderer builds the whole frame for the current terminal size.
-// A resize therefore needs no separate invalidation step.
+// Build each marquee frame as one string for the current terminal size.
+// Rebuilding the frame uses the current size after a resize.
 
 #include "csopesy/renderer.hpp"
 
@@ -12,8 +10,8 @@
 namespace csopesy {
 namespace {
 
-// Start each frame at the home cell. Raw mode disables newline translation, so the renderer
-// uses CRLF between rows.
+// Start each frame at the home cell.
+// Raw mode disables newline translation, so use CRLF between rows.
 constexpr char kCursorHome[] = "\x1b[H";
 constexpr char kRowSeparator[] = "\r\n";
 constexpr char kEraseToEol[] = "\x1b[K";
@@ -40,10 +38,8 @@ std::vector<std::string> splitLines(const std::string& text) {
   return lines;
 }
 
-// Show the tail of the input buffer so the cursor stays visible on one row.
-//
-// The prompt is the last frame row. Leave one column unused so the terminal never writes
-// to its bottom-right cell.
+// Show the end of the input buffer so the cursor stays visible.
+// Leave the bottom-right cell unused to prevent terminal scrolling.
 std::string buildPromptRow(const std::string& prompt, const std::string& buffer, int cols) {
   const int width = cols > 1 ? cols - 1 : 0;
   const int available = width - static_cast<int>(prompt.size()) - 1;
@@ -89,11 +85,11 @@ std::string Renderer::buildFrame(const Parameters& params, const MarqueeProcess&
   const int offset = scrollOffset(proc.cycles, static_cast<int>(params.text.size()), bandWidth);
   const std::string band = sliceRow(params.text, bandWidth, offset);
 
-  // Keep the band near the top on normal terminals. On short terminals, place it directly above
-  // the message and prompt so the band remains visible.
+  // Keep the band near the top on normal terminals.
+  // On short terminals, place it above the message and prompt.
   const int bandRow = rows >= kBandRow + 1 ? kBandRow : (rows >= 2 ? rows - 1 : 0);
 
-  // Keep the newest message lines when the terminal is too short for the full message.
+  // Keep the newest message lines when the terminal is too short.
   std::vector<std::string> messageLines = splitLines(message);
   int messageCount = static_cast<int>(messageLines.size());
   const int messageBudget = bandRow > 0 ? rows - bandRow - 1 : 0;
@@ -109,11 +105,12 @@ std::string Renderer::buildFrame(const Parameters& params, const MarqueeProcess&
   std::vector<std::string> frame(static_cast<std::size_t>(rows));
 
   if (bandRow > 0) {
-    frame[static_cast<std::size_t>(bandRow - 1)] = " " + band + " ";            // One space on each side.
+    frame[static_cast<std::size_t>(bandRow - 1)] = " " + band + " ";
     if (bandRow >= 2) frame[0] = "Welcome to CSOPESY!";
   }
 
-  // Add the fixed text below the band. Remove lower-priority rows first when the terminal is short.
+  // Add fixed text below the band.
+  // Remove lower-priority rows first when the terminal is short.
   std::vector<std::string> chrome;
   chrome.push_back("");
   chrome.push_back("Group developer:");
@@ -137,11 +134,11 @@ std::string Renderer::buildFrame(const Parameters& params, const MarqueeProcess&
 
   frame[static_cast<std::size_t>(rows - 1)] = buildPromptRow(prompt, buffer, cols);
 
-  // Pad every row to the terminal width. This prevents stale text and prevents row wrapping.
+  // Pad every row to the terminal width to prevent stale text and wrapping.
   for (std::string& line : frame) line = padOrClip(line, cols);
 
   // Leave the last cell unused and erase to the end of the line.
-  // Writing to the bottom-right cell can scroll the terminal and leave old frames in scrollback.
+  // This prevents terminal scrolling at the bottom-right cell.
   std::string out(kCursorHome);
   for (int row = 0; row < rows; ++row) {
     if (row > 0) out += kRowSeparator;

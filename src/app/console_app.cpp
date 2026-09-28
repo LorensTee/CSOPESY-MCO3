@@ -1,8 +1,6 @@
-// src/app/console_app.cpp — the application entry point after setup.
-//
-// ConsoleApp starts the marquee worker and then handles input on the main thread.
-// While the worker runs, it is the only thread that writes frames.
-// The main thread writes the first and last messages when no worker is running.
+// Run the application after startup is complete.
+// ConsoleApp starts the marquee worker and handles input on the main thread.
+// The worker writes frames while it is running.
 #include <iostream>
 #include <string>
 
@@ -48,8 +46,8 @@ int ConsoleApp::run() {
     return runPlainLineMode(params_);
   }
 
-  // Keep these objects as locals so their destruction order is clear.
-  // The Scheduler joins the worker thread before the objects are destroyed.
+  // Keep these objects local so they are destroyed in the correct order.
+  // Scheduler joins the worker before these objects are destroyed.
   Renderer renderer;
   MarqueeProcess proc;
   Interpreter interp(params_, proc);
@@ -69,8 +67,8 @@ int ConsoleApp::run() {
 
   scheduler.start();
 
-  // Read one event, send it to the scheduler, then check for shutdown.
-  // Check after every readEvent() call so the worker stops even after a timeout or EINTR.
+  // Read one event and send it to the scheduler.
+  // Check for shutdown after every readEvent() call.
   for (;;) {
     KeyEvent event;
     if (term_.readEvent(event, params_.pollingMs)) {
@@ -82,7 +80,7 @@ int ConsoleApp::run() {
   }
 
   scheduler.requestStop();
-  scheduler.join();   // Restore the terminal only after the worker stops.
+  scheduler.join();   // Wait for the worker to stop before shutdown.
 
   // The worker has stopped, so the main thread can write the goodbye line.
   term_.write("Exiting CSOPESY. Goodbye!\r\n");

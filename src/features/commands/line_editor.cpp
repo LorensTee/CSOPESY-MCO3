@@ -25,7 +25,7 @@ bool Interpreter::feed(const KeyEvent& ev) {
       return false;
     }
     case KeyType::Backspace:
-      if (!line_.empty()) line_.pop_back();        // The cursor stays at the end, so remove the last character.
+      if (!line_.empty()) line_.pop_back();
       return false;
     case KeyType::Enter: {
       const std::string submitted = line_;
@@ -37,13 +37,12 @@ bool Interpreter::feed(const KeyEvent& ev) {
       const std::string submitted = line_;
       line_.clear();
       message_ = executeLine(submitted);
-      // Treat EOF like a quit request after the current line is processed.
-      // ConsoleApp sees quit_ and stops the worker before it restores the terminal.
+      // Treat EOF as a quit request after processing the line.
       quit_ = true;
       return true;
     }
     default:
-      return false;                                // Ignore arrows, Tab, and Escape.
+      return false;
   }
 }
 
