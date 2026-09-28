@@ -10,8 +10,8 @@ that the §7 runbook's T-0:00 check is a real verification and not a formality.
 
 | | |
 | --- | --- |
-| Tag | `quiz-frozen` — ⚠️ **not yet moved to the new source** (pending commit) |
-| Source commit | `1c5a0b54c3bb71fffa0a63808594c41e20851eb2` (`feat: config implementation`, 2026-09-28; the tip carrying the `config.txt` default layer, D19) |
+| Tag | `quiz-frozen` — ⚠️ **still at the 2026-09-27 evidence commit; not moved** |
+| Source commit | `1c5a0b54c3bb71fffa0a63808594c41e20851eb2` (`feat: config implementation`, 2026-09-28; the first commit carrying the `config.txt` default layer, D19 — **not the tip**, see the note below) |
 | Path | `frozen/csopesy.exe` |
 | SHA-256 | `e525e675b16bb6c73b4f36c857c878841f44d66283e7fa0f734d8b2f37126265` |
 | Size | 202 353 bytes |
@@ -22,19 +22,23 @@ changed after that freeze — `include/csopesy/cli.hpp` (contracts v3.1), `src/e
 `tests/unit/test_cli.cpp` gained the `config.txt` default layer (D19) — so the old artifact was stale by the
 re-freeze rule below.
 
-> **⚠️ In-progress freeze (2026-09-28, uncommitted).** This artifact was built from the committed source at
-> `1c5a0b5` after the D19 change. Per the operator's instruction, the new `config.txt` and this record update
-> are **not committed**, and the `quiz-frozen` tag has **not** been moved. The binary does not embed
-> `config.txt` (it is read at runtime from the working directory), so the SHA-256 is independent of the file.
-> The T3.4 live gate below was run on the *previous* (`ec86bb06…`) bytes and must be re-pressed on these new
-> bytes before the freeze is final.
+> **⚠️ Provisional entry — the source has moved past it (2026-09-28).** These bytes were built from
+> `1c5a0b5`, which is **not** the source being submitted: commit `3419d4f` later changed the malformed-value
+> warning string in `src/entities/cli.cpp`. The SHA-256 above therefore corresponds to no committed tip, the
+> `quiz-frozen` tag has **not** been moved, and this entry must not be treated as the graded artifact. The
+> binary does not embed `config.txt` (it is read at runtime from the working directory), so that file does not
+> affect the hash. The T3.4 live gate below was run on the *previous* (`ec86bb06…`) bytes.
+>
+> **A re-freeze from the merged `main` tip is required before a graded take:** rebuild Release, recompute and
+> record the SHA-256 and size, re-confirm the test count below, move the `quiz-frozen` tag to the evidence
+> commit, and re-press the T3.4 gate on the new bytes.
 
 ### How it was built
 
 ```text
 cmake --preset release
 cmake --build --preset release
-ctest --preset release          # 2/2 (unit 139 + smoke)
+ctest --preset release          # 2/2 (unit 140 + smoke)
 cp build/release/csopesy.exe frozen/csopesy.exe
 ```
 
