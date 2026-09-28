@@ -83,7 +83,9 @@ int ConsoleApp::run() {
   scheduler.join();   // Wait for the worker to stop before shutdown.
 
   // The worker has stopped, so the main thread can write the exit message.
-  term_.write("Exiting CSOPESY. Goodbye!\r\n");
+  // The renderer leaves the cursor at the bottom-right cell. Move to the start
+  // of a fresh line before writing so the message is not split across lines.
+  term_.write("\r\nExiting CSOPESY. Goodbye!\r\n");
   term_.flush();
   return 0;
 }
