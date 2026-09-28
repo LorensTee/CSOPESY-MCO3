@@ -1,6 +1,12 @@
-// include/csopesy/shutdown.hpp — §3.10. Implemented once, in the selected src/platform/* file.
+// include/csopesy/shutdown.hpp — platform shutdown handling.
 #pragma once
 namespace csopesy {
-void installShutdownHandlers();   // POSIX: SIGINT/SIGTERM -> flag. Win32: SetConsoleCtrlHandler -> flag
-bool shutdownRequested();         // read-and-clear; called by the INPUT thread only (§3.8, §3.10)
+
+// Install the platform shutdown handlers.
+void installShutdownHandlers();
+
+// Return true once for a pending shutdown request.
+// The input thread calls this function and clears the request.
+bool shutdownRequested();
+
 }

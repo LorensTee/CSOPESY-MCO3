@@ -1,8 +1,11 @@
-// src/entities/cli.cpp — argv parsing plus the optional config.txt default layer.
-// Precedence is built-in defaults < config.txt < CLI flags (runtime commands are applied later by the
-// interpreter). Bad input never aborts startup: an unknown key/flag or a malformed/absent value warns and
-// keeps the current value, a well-formed out-of-range value is clamped and reported, and a repeated flag's
-// last value wins.
+// src/entities/cli.cpp — command-line option parsing and the optional config.txt defaults.
+//
+// Parameters are applied in this order:
+// runtime command, then command-line option, then config.txt, then built-in default.
+// Invalid input does not stop startup. An unknown key or option, a malformed value, and a missing value
+// each produce a warning and keep the current value.
+// A valid value outside its range is clamped and reported.
+// When an option is repeated, the last value wins.
 #include "csopesy/cli.hpp"
 
 #include <cstddef>
@@ -13,9 +16,8 @@
 namespace csopesy {
 namespace {
 
-// True when `s` matches [-+]?[0-9]+ in full. On success `mag` holds the magnitude saturated far above any
-// clamp bound and `negative` reports the sign, so a huge literal is treated as out-of-range (clamped) rather
-// than misclassified as malformed.
+// Return true only when s contains a complete signed integer.
+// Store the magnitude with saturation so a very large value is still treated as out of range.
 bool wellFormedInteger(const std::string& s, bool& negative, unsigned long long& mag) {
   if (s.empty()) return false;
   std::size_t i = 0;
@@ -24,7 +26,7 @@ bool wellFormedInteger(const std::string& s, bool& negative, unsigned long long&
     negative = s[0] == '-';
     i = 1;
   }
-  if (i >= s.size()) return false;               // "+" or "-" alone is not a number
+  if (i >= s.size()) return false;               // A sign without digits is not a number.
   mag = 0;
   for (; i < s.size(); ++i) {
     if (s[i] < '0' || s[i] > '9') return false;
@@ -44,8 +46,8 @@ int saturateToInt(unsigned long long mag, bool negative) {
   return static_cast<int>(mag);
 }
 
-// Both numeric inputs differ only in their bound, field name and spelling, so they share this path. `prefix`
-// lets the config-file caller mark the source of the warning without changing the flag wording.
+// Use the same parsing path for both numeric inputs, because they differ only in their bound and field.
+// A non-empty prefix names the source of a warning. The option path passes no prefix.
 void applyValueFlag(CliResult& result, const std::string& name, const std::string& raw,
                     ClampReport (Parameters::*set)(int), const std::string& prefix = "") {
   bool negative = false;
@@ -61,7 +63,8 @@ void applyValueFlag(CliResult& result, const std::string& name, const std::strin
   }
 }
 
-// Strips surrounding spaces/tabs and a trailing CR so CRLF files behave like LF files.
+// Remove spaces, tabs, and a final carriage return.
+// A file with CRLF line endings then behaves like one with LF line endings.
 std::string trim(const std::string& s) {
   std::size_t begin = 0, end = s.size();
   while (begin < end && (s[begin] == ' ' || s[begin] == '\t')) ++begin;
@@ -72,9 +75,9 @@ std::string trim(const std::string& s) {
 }  // namespace
 
 CliResult loadConfigFile(const std::string& path) {
-  CliResult result;                       // the built-in defaults are the base layer
+  CliResult result;                       // The built-in defaults are the base layer.
   std::ifstream in(path, std::ios::binary);
-  if (!in) return result;                 // absent or unreadable: optional, so silent
+  if (!in) return result;                 // The file is optional, so a missing file is silent.
 
   const std::string prefix = path + ": ";
   std::string line;
@@ -106,10 +109,10 @@ CliResult loadConfigFile(const std::string& path) {
 }
 
 CliResult parseCli(const std::vector<std::string>& args, const std::string& configPath) {
-  CliResult result = loadConfigFile(configPath);   // config.txt sits below the flags
+  CliResult result = loadConfigFile(configPath);   // config.txt is the layer below the options.
   for (const std::string& token : args) {
     if (token == "--no-tty") {
-      result.params.noTty = true;                // takes no value
+      result.params.noTty = true;                // This option takes no value.
     } else if (token.rfind("--refresh-ms=", 0) == 0) {
       applyValueFlag(result, "--refresh-ms", token.substr(13), &Parameters::setRefresh);
     } else if (token.rfind("--poll-ms=", 0) == 0) {

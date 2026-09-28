@@ -1,5 +1,7 @@
-// src/features/commands/interpreter.cpp — command recognition and the response table (§3.7, §T2.4).
-// The keystroke/editing path lives in line_editor.cpp; this unit owns line execution and the accessors.
+// src/features/commands/interpreter.cpp — command recognition and execution.
+//
+// The line editor handles keystrokes and editing.
+// This file handles complete command lines and provides the interpreter state to the application.
 #include "csopesy/interpreter.hpp"
 
 #include <cstddef>
@@ -23,7 +25,7 @@ std::string trim(const std::string& s) {
 enum class Cmd { Help, Start, Stop, SetText, SetSpeed, Exit, Unknown };
 
 Cmd lookup(const std::string& name) {
-  // Exact, case-sensitive names only; "HELP" is deliberately not a command (§3.7 rule 3).
+  // Match command names exactly. Command names are case-sensitive.
   static const std::unordered_map<std::string, Cmd> table = {
       {"help", Cmd::Help},         {"start_marquee", Cmd::Start}, {"stop_marquee", Cmd::Stop},
       {"set_text", Cmd::SetText},  {"set_speed", Cmd::SetSpeed},  {"exit", Cmd::Exit}};
@@ -40,8 +42,8 @@ const char* const kHelp =
     "  set_speed      - sets the marquee animation refresh in milliseconds\n"
     "  exit           - terminates the console";
 
-// Matches [-+]?[0-9]+ in full. The magnitude saturates far above the clamp bound so a huge literal is
-// clamped and reported rather than misread as a usage error (std::stoi would silently accept "5abc").
+// Parse the complete integer. Store large magnitudes with saturation so they can be clamped instead of
+// being rejected or partly parsed.
 bool parseFullInteger(const std::string& s, int& out) {
   if (s.empty()) return false;
   std::size_t i = 0;
@@ -70,7 +72,7 @@ Interpreter::Interpreter(Parameters& params, MarqueeProcess& proc) : params_(par
 std::string Interpreter::executeLine(const std::string& raw) {
   const std::string line = trim(raw);
   if (line.empty()) {
-    message_.clear();                              // empty line: no message, prompt redrawn (§3.7)
+    message_.clear();                              // Empty input clears the message.
     return {};
   }
 
@@ -79,8 +81,8 @@ std::string Interpreter::executeLine(const std::string& raw) {
   const std::string arg = sep == std::string::npos ? std::string() : trim(line.substr(sep));
 
   const Cmd command = lookup(cmd);
-  // Commands that take no argument reject appended text instead of silently ignoring it:
-  // `help hello` must not run `help`, and `exit hello` must not terminate the console.
+  // Reject extra text for commands that take no argument.
+  // For example, "help hello" must not run help, and "exit hello" must not exit.
   if (!arg.empty() &&
       (command == Cmd::Help || command == Cmd::Start || command == Cmd::Stop || command == Cmd::Exit)) {
     message_ = "Usage: " + cmd;
@@ -136,7 +138,7 @@ std::string Interpreter::executeLine(const std::string& raw) {
     }
 
     case Cmd::Exit:
-      quit_ = true;                                // read only by the input thread (§3.11)
+      quit_ = true;                                // Only the input thread reads quit_.
       message_ = "Exiting CSOPESY. Goodbye!";
       break;
 
@@ -150,7 +152,7 @@ std::string Interpreter::executeLine(const std::string& raw) {
 
 bool Interpreter::quitRequested() const { return quit_; }
 
-std::string Interpreter::prompt() const { return "Command>"; }   // frozen literal (§3.9/§3.11)
+std::string Interpreter::prompt() const { return "Command>"; }   // Return the fixed prompt.
 
 std::string Interpreter::buffer() const { return line_; }
 

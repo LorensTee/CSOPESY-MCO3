@@ -1,6 +1,6 @@
 # CONTRACTS.md — the interface freeze marker
 
-**contracts v3.1 — 2026-09-28**
+**contracts v3.1.1 — 2026-09-28**
 
 Everything under `include/csopesy/` is an **interface contract**: the declarations the other layers
 compile against, plus the semantics those declarations promise. After this marker a contract changes
@@ -12,7 +12,8 @@ change invalidates a teammate's build on a machine you are not holding.
 §3.12 + **T0.6** (what this v3.0 change consisted of).
 **History:** `docs/REVIEW_ADJUDICATION.md` records why each earlier revision looks the way it does (rounds 1–7
 cover v1 → v2.6); `docs/PLAN_V3_PROGRESS.md` §4 records the v3.x decisions D1–D19 (v3.0: D1–D18; v3.1: D19,
-the authorized `config.txt` default layer).
+the authorized `config.txt` default layer; v3.1.1: the ASD-STE100 comment rewrite, which changed all 11 header
+blobs without changing a declaration).
 
 ## What this freeze covers
 
@@ -90,6 +91,25 @@ Only `cli.hpp`'s blob changed; the other 10 headers still match their recorded h
 this is the delta claimed). `parameters.hpp`'s **documented precedence** is now four layers, but its declared
 members and methods are unchanged, so no edit was needed there.
 
+## Re-frozen in v3.1.1
+
+Landed 2026-09-28 as a **comment-only** revision: the source comments were rewritten in ASD-STE100 style, and
+every internal reference — decision ids such as D19, and `§`-numbered plan sections — was removed from
+`include/csopesy/*.hpp` and `src/**`, because `AGENTS.md` §9 keeps that material in `docs/`. Nobody grading the
+project should need to read a decision log to understand a header.
+
+A comment edit inside a frozen header is a contract change (`AGENTS.md` §4 and §9), so **all 11 blobs changed**
+and the whole table below was regenerated in the same commit. That is a deliberate departure from v3.0/v3.1,
+where the evidence was that untouched headers kept their recorded hashes.
+
+**What did not change:** no signature, struct field, constant, default value or documented semantic moved. The
+only code-level differences in any header are multi-declarator splits, where `T a, b;` became `T a; T b;` (same
+type, same order, same initializers) — `interpreter.hpp` (1), `parameters.hpp` (2), `scheduler.hpp` (4).
+`cli.hpp` carries the D19 config API and `parameters.hpp`'s comment now states the four-layer precedence that
+`cli.hpp` implements; before this revision that comment still said three layers.
+
+**Marker:** the rewrite is a patch-level revision, so the marker is `v3.1.1`, not `v3.2`.
+
 ## Change protocol (§4.5, verbatim)
 
 > Contracts change only by: propose in chat → W2 + the affected owner agree → bump the `CONTRACTS.md` marker
@@ -103,19 +123,22 @@ And, from the same table: **one writer per file at any time.**
 `git hash-object` hashes the *committed blob*, so a CRLF checkout or a different line-ending setting cannot
 produce a false mismatch:
 
-| Header | Blob hash | v3.1 status |
+| Header | Blob hash | v3.1.1 status |
 | --- | --- | --- |
-| `cli.hpp` | `5961a2e58b9fba1c188dca7b0676cfaf01fa320c` | **changed (v3.1 — D19)** |
-| `console_app.hpp` | `af282ac885161be648f2c1e038936cce1e66d584` | unchanged (= v2.6) |
-| `interpreter.hpp` | `bb7d888a59e9a801fa57e380d408fae5f98365ed` | unchanged (= v2.6) |
-| `keys.hpp` | `1f6eeea8a1930ba9b15ea02fa62f29d65e106fa4` | unchanged (= v2.6) |
-| `line_editor.hpp` | `5f229d78338e7116a13b95c19c8fa98da62746d5` | unchanged (= v2.6) |
-| `parameters.hpp` | `4da5ae636ceb94a502aaf3a9d0e1f18c28458af3` | **changed** |
-| `process.hpp` | `104ed6f89fa51fdacaa635fdb4d9c757dceb2343` | unchanged (= v2.6) |
-| `renderer.hpp` | `3b0bd9663f5127ecd4a354354dec5181aa8220fe` | **changed** |
-| `scheduler.hpp` | `6c006cdcaddfe5c9573959d149cb794f457a980a` | **changed** |
-| `shutdown.hpp` | `02bb0a2c722be76278b16a0fbf3fa3f2b00f750b` | unchanged (= v2.6) |
-| `terminal.hpp` | `e9031d85b59aad0c52d9978e70be69dd2db4128e` | unchanged (= v2.6) |
+| `cli.hpp` | `9a3f600c177a453a7913d7aaecd01de6fa5080dd` | **changed (v3.1.1 — STE100 comments + D19 API)** |
+| `console_app.hpp` | `3d65fca6d2ed5674023208401fdaf84d806c19ef` | **changed (v3.1.1 — comments)** |
+| `interpreter.hpp` | `afc9891d09181e20d1d1fdddcc4c27fe75d7c912` | **changed (v3.1.1 — comments)** |
+| `keys.hpp` | `5071f0f1dbde46a793358102b00db7e7d4e2d81a` | **changed (v3.1.1 — comments)** |
+| `line_editor.hpp` | `89efcf7d4eaf8bb44d7cd92541adff374037971c` | **changed (v3.1.1 — comments)** |
+| `parameters.hpp` | `dc64cd56c06c4002846f03bf87f35f065c1ce35a` | **changed (v3.1.1 — comments + four-layer precedence)** |
+| `process.hpp` | `0a924a4c5f54d91dac35606209c74034866f774c` | **changed (v3.1.1 — comments)** |
+| `renderer.hpp` | `e8d4f633b9b9529e1747b4947e840b35e6ce2c33` | **changed (v3.1.1 — comments)** |
+| `scheduler.hpp` | `37c212aa00b12edf92d203611f8544a815d2c0f8` | **changed (v3.1.1 — comments)** |
+| `shutdown.hpp` | `921b5e65bfd063ba65f4ee5ccf39bdaf7f81d4f1` | **changed (v3.1.1 — comments)** |
+| `terminal.hpp` | `866f0197296608076c74baf17bba01397aaa7ae4` | **changed (v3.1.1 — comments)** |
+
+The v3.0 and v3.1 tables are superseded by this one; they remain in git history for the "the untouched headers
+kept their hashes" evidence recorded in the sections above.
 
 Re-check with `git hash-object include/csopesy/*.hpp`. A mismatch means a contract header changed: either it
 went through the protocol above — in which case regenerate this table and bump the marker *in the same commit* —

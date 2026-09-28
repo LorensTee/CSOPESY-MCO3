@@ -1,6 +1,7 @@
-// src/main.cpp — the graded entry file (app/ layer, §T2.5 Step 1).
-// Composition root: parse flags -> build the platform terminal -> install signal handlers -> enter raw mode
-// through an RAII guard -> hand everything to ConsoleApp. No globals beyond the guard's lifetime.
+// src/main.cpp — program entry point.
+//
+// Parse command-line options, create the terminal, install shutdown handling,
+// enter raw mode when needed, and run the application.
 #include <cstdio>
 #include <memory>
 #include <string>
@@ -13,8 +14,8 @@
 
 namespace {
 
-// Raw mode is a resource: entered on construction, restored on every normal-scope exit. The platform layer
-// installs the atexit backstop, so this guard is the primary path rather than the only one.
+// Raw mode is a resource. Enter it in the constructor and restore it in the destructor.
+// The platform layer also has an exit handler as a backup.
 class TerminalGuard {
  public:
   TerminalGuard(csopesy::Terminal& term, bool plainLineMode) : term_(term), active_(!plainLineMode) {
@@ -37,13 +38,13 @@ int main(int argc, char** argv) {
   const std::vector<std::string> args(argv + 1, argv + argc);
   csopesy::CliResult cli = csopesy::parseCli(args);
 
-  // Warnings go to stderr: a bad flag must not corrupt the frame the worker will draw on stdout.
+  // Write warnings to stderr so they do not change the frame on stdout.
   for (const std::string& warning : cli.warnings) {
     std::fprintf(stderr, "%s\n", warning.c_str());
   }
 
   const std::unique_ptr<csopesy::Terminal> term = csopesy::Terminal::create();
-  // Plain line mode is chosen once, before any thread exists, and covers both --no-tty and a non-tty stdin.
+  // Select plain line mode before any worker thread starts.
   const bool plainLineMode = cli.params.noTty || !term->isTty();
 
   csopesy::installShutdownHandlers();

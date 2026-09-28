@@ -1,16 +1,15 @@
-// src/entities/parameters.cpp — clamping that never throws, plus the ASCII text contract (§3.5, §T2.1).
-// setRefresh/setPolling clamp into [min, max] and fill in the ClampReport; setText trims, keeps internal
-// space runs, and returns Empty or NonAscii with the state unchanged — it never normalizes, because mangling
-// the operator's text would be worse than refusing it. defaults() is the built-in precedence layer.
+// src/entities/parameters.cpp — parameter validation and text handling.
 //
-// The ASCII-only rule is load-bearing, not cosmetic: the renderer's width model is one byte == one column.
+// setRefresh() and setPolling() clamp values to their allowed ranges.
+// setText() trims outer spaces, keeps internal spaces, and accepts printable ASCII only.
+// Invalid text leaves the current value unchanged.
 #include "csopesy/parameters.hpp"
 #include <utility>
 
 namespace csopesy {
 namespace {
 
-// One byte must equal one column for the renderer's width math, so only the printable ASCII range is text.
+// The renderer treats one byte as one column, so text must use printable ASCII.
 bool isPrintableAscii(unsigned char c) { return c >= 0x20 && c <= 0x7E; }
 
 }  // namespace
@@ -42,7 +41,7 @@ ClampReport Parameters::setPolling(int ms) {
 }
 
 TextResult Parameters::setText(const std::string& t) {
-  // Trim the surrounding spaces only; internal runs survive verbatim (§3.5 step 1, §3.7 rule 4).
+  // Remove leading and trailing spaces. Keep internal spaces unchanged.
   std::size_t begin = 0, end = t.size();
   while (begin < end && t[begin] == ' ') ++begin;
   while (end > begin && t[end - 1] == ' ') --end;
@@ -58,7 +57,7 @@ TextResult Parameters::setText(const std::string& t) {
 }
 
 Parameters Parameters::defaults() {
-  // The default member initializers are the built-in layer, so an empty body is correct.
+  // Default member values already set every parameter.
   return {};
 }
 

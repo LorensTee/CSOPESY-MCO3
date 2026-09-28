@@ -15,12 +15,14 @@ features exist. `include/csopesy/*.hpp` are the **v3.0** frozen contracts. Of Ph
 `src/**` files are still `TODO` stubs, so do not assume a task is done because the file exists — check
 `docs/IMPLEMENTATION_PLAN_v3.md` §5 for the phase it belongs to.
 
-**Contracts are at v3.1 (2026-09-28, D19) after v3.0 landed 2026-09-22 (task T0.6).** The tree matches the v3
+**Contracts are at v3.1.1 (2026-09-28) after v3.0 landed 2026-09-22 (task T0.6).** The tree matches the v3
 plan: a plain-text (ASCII) marquee, no `marquee_row`, no `--diag`, no `--measure`, no `FrameBuffer` diffing,
 and no injected `Clock` — while keeping the professor-mandated two threads, the FSD layers, the contract
-freeze and the 3-OS CI matrix. v3.1 adds the optional `config.txt` default-parameter layer (D19), superseding
-the old "no config file" assumption. `CONTRACTS.md` is the v3.1 marker. Read `docs/PLAN_V3_PROGRESS.md` for the
-decision list (D1–D19) and the current state.
+freeze and the 3-OS CI matrix. v3.1 added the optional `config.txt` default-parameter layer (D19), superseding
+the old "no config file" assumption; v3.1.1 then rewrote the source comments in ASD-STE100 style and removed
+every internal reference (decision ids, `§`-numbered sections) from `include/` and `src/`, which changed all 11
+header blobs, so the freeze table was regenerated. `CONTRACTS.md` is the v3.1.1 marker. Read
+`docs/PLAN_V3_PROGRESS.md` for the decision list (D1–D19) and the current state.
 
 **The v3 plan is in force (added 2026-09-22).** `docs/IMPLEMENTATION_PLAN_v3.md` simplifies the plan after the
 professor's answers: no `.ini` config system (v3.1 later added the optional `config.txt` defaults layer, D19),
@@ -82,7 +84,7 @@ platform/  is a peer of shared/ and may import shared/ ONLY
   silently stop guarding a file.
 - `Scheduler` lives in `app/` (it holds `Renderer&` and `Interpreter&`), not `entities/`.
 
-## 4. Contracts are frozen (v3.0, 2026-09-22)
+## 4. Contracts are frozen (v3.1.1, 2026-09-28)
 
 Everything under `include/csopesy/` is an interface contract: signatures, struct fields, constants, and the
 semantics attached to them (ownership, locking, one-writer rules, error behaviour).

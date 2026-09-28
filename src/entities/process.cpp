@@ -1,6 +1,7 @@
-// src/entities/process.cpp — the PCB (§T1.2).
-// hasRendered == false makes the next tick draw immediately; clearing it here is what makes a restarted
-// marquee repaint on its first tick instead of waiting out a stale deadline.
+// src/entities/process.cpp — process state changes.
+//
+// Starting a process resets hasRendered so the next tick draws a frame immediately.
+// Stopping a process only changes its state.
 #include "csopesy/process.hpp"
 
 namespace csopesy {

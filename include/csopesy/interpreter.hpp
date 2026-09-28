@@ -1,7 +1,9 @@
-// include/csopesy/interpreter.hpp — §3.11.
-// NOTE (T0.1): the plan's snippet lists only <string> + parameters.hpp + process.hpp, but the contract
-// below uses std::string_view and KeyEvent, so <string_view> and csopesy/keys.hpp are required for the
-// header to compile standalone. Two added includes; no signature changed.
+// include/csopesy/interpreter.hpp — command input and editing state.
+//
+// Interpreter stores the current input line, the latest message, and the quit state.
+// The application owns synchronization when the interpreter is shared between threads.
+// The line editor and command executor use this same object.
+
 #pragma once
 #include <string>
 #include <string_view>
@@ -9,21 +11,37 @@
 #include "csopesy/parameters.hpp"
 #include "csopesy/process.hpp"
 namespace csopesy {
-// The horizontal-scroll window for the prompt row (§3.11). Unit-tested directly: result.size() <= availWidth,
-// and when the buffer is longer than the window the TAIL is shown so the cursor stays visible.
+
+// Return the part of the input buffer that fits in the prompt row.
+// When the buffer is too long, return its tail so the cursor remains visible.
 std::string visibleSlice(std::string_view buffer, int availWidth);
 
 class Interpreter {
  public:
-  Interpreter(Parameters&, MarqueeProcess&);   // start/stop_marquee mutate the PCB
-  bool feed(const KeyEvent&);                  // true when a full line was executed
-  std::string executeLine(const std::string&); // the entry point used by unit tests
+  Interpreter(Parameters&, MarqueeProcess&);
+
+  // Process one key event. Return true when the event submits a complete line.
+  bool feed(const KeyEvent&);
+
+  // Execute a complete input line.
+  std::string executeLine(const std::string&);
+
   bool quitRequested() const;
-  std::string prompt()      const;             // "Command>"
-  std::string buffer()      const;             // echoed typed text
-  std::string lastMessage() const;             // the response line(s) currently displayed
+
+  // Return the prompt shown before the input buffer.
+  std::string prompt() const;
+
+  // Return the current input buffer.
+  std::string buffer() const;
+
+  // Return the latest command response.
+  std::string lastMessage() const;
+
  private:
-  Parameters& params_; MarqueeProcess& proc_;
-  std::string line_, message_; bool quit_ = false;
+  Parameters& params_;
+  MarqueeProcess& proc_;
+  std::string line_;
+  std::string message_;
+  bool quit_ = false;
 };
 }
